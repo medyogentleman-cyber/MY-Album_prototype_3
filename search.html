@@ -1,0 +1,326 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>検索 - MYアルバム</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nav-height: 80px;
+            --search-bg: #F2F2F7;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background-color: var(--bg-color); color: var(--text-main); -webkit-tap-highlight-color: transparent; }
+        
+        .app-container { max-width: 430px; margin: 0 auto; background: var(--bg-color); position: relative; min-height: 100vh; padding-bottom: calc(var(--nav-height) + 20px);}
+
+        /* Sticky Header Components */
+        .sticky-head { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); }
+
+        .search-row { padding: 12px 16px; display: flex; gap: 12px; align-items: center; }
+        .search-box { flex: 1; background: var(--search-bg); border-radius: 12px; display: flex; align-items: center; padding: 0 12px; height: 44px; border: 2px solid transparent; transition: 0.2s;}
+        .search-box:focus-within { border-color: var(--primary-color); background: #FFF; box-shadow: 0 4px 12px rgba(255,107,0,0.1);}
+        .search-box svg { fill: var(--text-sub); width: 20px; height: 20px; flex-shrink: 0;}
+        .search-input { flex: 1; border: none; background: transparent; font-size: 14px; font-weight: 800; padding: 0 8px; color: var(--text-main); font-family: inherit; width: 100%; outline: none;}
+        .search-input::placeholder { color: #A0A0A0; font-weight: 600; font-size: 13px;}
+        .clear-btn { color: #A0A0A0; font-size: 16px; cursor: pointer; display: none; width: 20px; height: 20px; text-align: center; line-height: 20px; background: rgba(0,0,0,0.1); border-radius: 50%; padding-bottom: 2px;}
+
+        /* Timeline Feed */
+        .feed-sec { margin-bottom: 24px; }
+        .platform-header { padding: 12px 16px; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 900; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); position: sticky; top: 154px; z-index: 40; box-shadow: var(--shadow-sm);}
+        .ph-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 14px; }
+        .ph-icon img { width: 100%; height: 100%; object-fit: contain; border-radius: inherit; }
+        .ph-icon.is-img { background: #FFF !important; border: 1px solid rgba(0,0,0,0.05); padding: 3px; }
+        .ph-icon.myal { background: #FFF; border: 1px solid rgba(0,0,0,0.1); }
+
+        .feed-list { padding: 0 16px; background: #FFF; }
+        .feed-item { display: flex; gap: 12px; padding: 16px 0; border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .feed-item:last-child { border-bottom: none; }
+        .fi-thumb { width: 100px; height: 75px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: #EAE8F2; border: 1px solid rgba(0,0,0,0.05);}
+        .fi-body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+        .fi-title { font-size: 13px; font-weight: 800; line-height: 1.4; margin-bottom: 2px; color: var(--text-main); }
+        .fi-date { font-size: 12px; font-weight: 900; color: var(--text-sub); display: flex; align-items: center; gap: 8px;}
+        .fi-type { font-size: 11px; color: var(--text-sub); display: flex; align-items: center; gap: 4px; font-weight: 800; background: var(--bg-color); padding: 4px 8px; border-radius: 6px; width: fit-content;}
+        .new-tag { background: var(--accent-pink); color: #FFF; font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; margin-left: auto; line-height: 1.2; }
+        
+        /* Large ThumbItems */
+        .feed-item.large-thumb { flex-direction: column; }
+        .feed-item.large-thumb .fi-thumb { width: 100%; height: auto; aspect-ratio: 1/1; max-height: 380px; border-radius: 12px; }
+        .feed-item.large-thumb .fi-body { width: 100%; }
+
+        /* Actions */
+        .fi-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .action-btn { font-size: 11px; font-weight: 800; padding: 8px 10px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: 0.2s; white-space: nowrap; font-family: inherit; line-height: 1;}
+        .btn-archive { background: #EAE8F2; color: var(--text-main); }
+        .btn-archive:active { background: #D1D1D6; transform: scale(0.95); }
+        .btn-archive.archived { background: var(--primary-light); color: var(--primary-color); pointer-events: none; border: 1px solid rgba(255,107,0,0.2); }
+        .btn-edit { background: var(--text-main); color: #FFF; }
+        .btn-edit:active { transform: scale(0.95); }
+        .btn-go { background: #FFF; border: 1px solid var(--border-color); color: var(--text-sub); margin-left: auto;}
+        
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        /* Text only thumbnail dummy */
+        .text-thumb { width: 100px; height: 75px; border-radius: 8px; background: #333; border: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; padding: 8px; font-size: 10px; font-weight: 800; color: #FFF; line-height: 1.4; text-align: left; overflow: hidden; }
+
+        .more-btn { display: block; width: 100%; text-align: center; padding: 14px; font-size: 14px; font-weight: 800; color: var(--primary-color); background: #FFF; border-bottom: 1px solid var(--border-color); text-decoration: none; transition: 0.2s;}
+        .more-btn:active { background: #F0F2F5; }
+        .more-btn.disabled { color: #A0A0A0; pointer-events: none; }
+
+        .filter-btn { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 800; border: 1px solid var(--border-color); background: #FFF; color: var(--text-sub); cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .filter-btn.active { background: var(--primary-color); color: #FFF; border-color: var(--primary-color); }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); height: var(--nav-height); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0px); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); text-decoration: none; font-size: 10px; font-weight: 700; gap: 4px; }
+        .nav-item.active { color: var(--primary-color); }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
+        .nav-fab { background-color: var(--primary-color); color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -30px; box-shadow: 0 4px 12px rgba(255,107,0,0.3); font-size: 32px; line-height: 1; text-decoration: none; border: 4px solid var(--bg-color); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <div class="sticky-head" style="padding-bottom: 12px;">
+            <!-- Headers identical to home.html -->
+            <header class="dash-header" style="box-shadow: none; border-bottom: none; padding-bottom: 0; position:static; background:transparent; backdrop-filter:none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <img src="images/Myalbumlogo.png" alt="MYアルバム" style="height: 48px; width: auto; object-fit: contain; flex-shrink: 0;">
+                    
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; background: transparent; padding: 0;">
+                            <span style="font-size: 10px; font-weight: 900; color: #FFF; background: var(--primary-color); padding: 2px 6px; border-radius: 12px; line-height: 1; box-shadow: 0 2px 4px rgba(255,107,0,0.2);">Lv.5</span>
+                            <span style="font-size: 12px; font-weight: 900; color: var(--text-main); line-height: 1.1;">TaroCreativeさん</span>
+                        </div>
+                        
+                        <div style="position:relative; width: 38px; height: 38px; background: #FFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); cursor: pointer;" onclick="document.getElementById('notif-pop').classList.toggle('active')">
+                            <span style="font-size: 20px;">🔔</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="width: 100%; position: relative; display: flex; align-items: center; background: rgba(0,0,0,0.03); border-radius: 12px; padding: 4px 12px;">
+                    <select class="album-select" style="border:none;background:transparent;width:100%;padding-right:20px;font-size:16px;font-weight:900;outline:none;-webkit-appearance:none;appearance:none;color:var(--text-main);">
+                        <option value="✓公式 あおいちゃん推し活HUB">✓公式 あおいちゃん推し活HUB</option>
+                        <option value="✓公式 みどりちゃん応援隊">✓公式 みどりちゃん応援隊</option>
+                    </select>
+                    <div style="position: absolute; right: 12px; pointer-events: none;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="var(--text-main)"><path d="M7 10l5 5 5-5z"/></svg>
+                    </div>
+                </div>
+            </header>
+
+            <div class="search-row" style="padding-top: 12px; padding-bottom: 0;">
+                <div class="search-box" style="background: #EAE8F2;">
+                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    <input type="text" id="searchInput" class="search-input" placeholder="推し名、配信日、神シーン等で検索">
+                    <div class="clear-btn" id="clearBtn" onclick="document.getElementById('searchInput').value=''">✕</div>
+                </div>
+            </div>
+            
+            <div style="padding: 12px 16px; display: flex; gap: 8px; overflow-x: auto; background: rgba(255,255,255,0.95); -webkit-overflow-scrolling: touch;">
+                <button class="filter-btn active" onclick="filterByDate('all', this)">すべて</button>
+                <button class="filter-btn" onclick="filterByDate('today', this)">24H以内</button>
+                <button class="filter-btn" onclick="filterByDate('yesterday', this)">48H以内</button>
+                <button class="filter-btn" onclick="filterByDate('dayBefore', this)">72H以内</button>
+            </div>
+        </div>
+
+        <div class="content-area" style="padding: 0;">
+            
+            <!-- MYアルバム -->
+            <div class="feed-sec" id="sec-myal">
+                <div class="platform-header">
+                    <div class="ph-icon myal"><img src="images/Myalbumlogo_small.png" style="width:16px; height:16px; object-fit:contain;"></div> MYアルバム限定コンテンツ
+                </div>
+                <div class="feed-list">
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_fan_meeting.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] 秘蔵！ファンミの裏側大公開！</div><div class="fi-date">2026/3/20 12:05 <span class="new-tag">NEW</span></div><div class="fi-type">🎥 動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="location.href='my_albums.html'">MYアルバムに行く</button></div></div></div>
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_lesson_tired.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] レッスン終わりのクタクタトーク</div><div class="fi-date">2026/2/28 23:04</div><div class="fi-type">🎥 動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="location.href='my_albums.html'">MYアルバムに行く</button></div></div></div>
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_costume_fitting.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] 新作衣装のフィッティング風景</div><div class="fi-date">2026/2/11 5:35</div><div class="fi-type">🖼️ 画像</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='photo_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="location.href='my_albums.html'">MYアルバムに行く</button></div></div></div>
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_limited_thumbnail.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] お気に入りカフェでの一枚</div><div class="fi-date">2026/1/11 4:08</div><div class="fi-type">🖼️ 画像</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='photo_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="location.href='my_albums.html'">MYアルバムに行く</button></div></div></div>
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_summer_live.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] 昨年の夏ライブ、奇跡の瞬間</div><div class="fi-date">2025/8/5 4:08</div><div class="fi-type">🎥 動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="location.href='my_albums.html'">MYアルバムに行く</button></div></div></div>
+                </div>
+                <a href="#" class="more-btn">&gt;&gt;&gt;もっと見る</a>
+            </div>
+
+            <!-- Instagram -->
+            <div class="feed-sec" id="sec-ig">
+                <div class="platform-header">
+                    <div class="ph-icon is-img"><img src="images/icon/Instagram.png" alt="Instagram"></div> Instagram
+                </div>
+                <div class="feed-list">
+                    <div class="feed-item large-thumb"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_instagram_post.png" alt="thumbnail"><div class="fi-body"><div class="fi-date">2026/3/20 12:05 <span class="new-tag">NEW</span></div><div class="fi-type">🖼️ 画像</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='photo_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">Instagramに行く</button></div></div></div>
+                    <div class="feed-item large-thumb"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_instagram_post.png" alt="thumbnail"><div class="fi-body"><div class="fi-date">2026/2/28 23:04</div><div class="fi-type">🎥 動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">Instagramに行く</button></div></div></div>
+                    <div class="feed-item large-thumb"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_instagram_post.png" alt="thumbnail"><div class="fi-body"><div class="fi-date">2026/2/11 5:35</div><div class="fi-type">🖼️ 画像</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='photo_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">Instagramに行く</button></div></div></div>
+                    <div class="feed-item large-thumb"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_instagram_post.png" alt="thumbnail"><div class="fi-body"><div class="fi-date">2026/1/11 4:08</div><div class="fi-type">🖼️ 画像</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='photo_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">Instagramに行く</button></div></div></div>
+                    <div class="feed-item large-thumb"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_instagram_post.png" alt="thumbnail"><div class="fi-body"><div class="fi-date">2025/8/5 4:08</div><div class="fi-type">🎥 動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">Instagramに行く</button></div></div></div>
+                </div>
+                <a href="#" class="more-btn">&gt;&gt;&gt;もっと見る</a>
+            </div>
+
+            <!-- X -->
+            <div class="feed-sec">
+                <div class="platform-header">
+                    <div class="ph-icon is-img"><img src="images/icon/X.png" alt="X"></div> X
+                </div>
+                <div class="feed-list">
+                    <div class="feed-item">
+                        <div class="text-thumb">本日もお疲れ様でした！明日の撮影も頑張るぞー！！✨</div>
+                        <div class="fi-body"><div class="fi-date">2026/3/18 3:23 <span class="new-tag">NEW</span></div><div class="fi-type">📝 テキスト</div><div class="fi-actions"><button class="action-btn btn-go" onclick="window.open('#','_blank')">Xに行く</button></div></div>
+                    </div>
+                    <div class="feed-item large-thumb"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_x_post.png" alt="thumbnail"><div class="fi-body"><div class="fi-date">2026/3/16 23:04</div><div class="fi-type">🖼️ 画像</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='photo_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">Xに行く</button></div></div></div>
+                    <div class="feed-item large-thumb"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_x_post.png" alt="thumbnail"><div class="fi-body"><div class="fi-date">2026/3/15 5:35</div><div class="fi-type">🖼️ 画像</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='photo_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">Xに行く</button></div></div></div>
+                    <div class="feed-item large-thumb"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_x_post.png" alt="thumbnail"><div class="fi-body"><div class="fi-date">2026/3/13 4:08</div><div class="fi-type">🖼️ 画像</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='photo_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">Xに行く</button></div></div></div>
+                    <div class="feed-item">
+                        <div class="text-thumb">やっと美容院行けた✂️サッパリしたよ〜</div>
+                        <div class="fi-body"><div class="fi-date">2025/3/11 4:08</div><div class="fi-type">📝 テキスト</div><div class="fi-actions"><button class="action-btn btn-go" onclick="window.open('#','_blank')">Xに行く</button></div></div>
+                    </div>
+                </div>
+                <a href="#" class="more-btn">&gt;&gt;&gt;もっと見る</a>
+            </div>
+
+            <!-- YouTube -->
+            <div class="feed-sec">
+                <div class="platform-header">
+                    <div class="ph-icon is-img"><img src="images/icon/Youtube.png" alt="YouTube"></div> YouTube
+                </div>
+                <div class="feed-list">
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_youtube_thumbnail.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] 【神企画】メンバー全員でドッキリ仕掛けてみた！</div><div class="fi-date">2026/3/17 20:01 <span class="new-tag">NEW</span></div><div class="fi-type">🎥 動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">YouTubeに行く</button></div></div></div>
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_youtube_thumbnail.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] 【踊ってみた】最新曲のサビだけ本気ダンス</div><div class="fi-date">2026/2/28 23:04</div><div class="fi-type">📱 ショート動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">YouTubeに行く</button></div></div></div>
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_youtube_thumbnail.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] 【Vlog】休日の過ごし方・完全プライベート密着</div><div class="fi-date">2026/2/11 5:35</div><div class="fi-type">🎥 動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">YouTubeに行く</button></div></div></div>
+                </div>
+                <a href="#" class="more-btn disabled">&gt;&gt;&gt;もっと見る</a>
+            </div>
+
+            <!-- SHOWROOM -->
+            <div class="feed-sec">
+                <div class="platform-header">
+                    <div class="ph-icon is-img"><img src="images/icon/showroom.png" alt="SHOWROOM"></div> SHOWROOM
+                </div>
+                <div class="feed-list">
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_showroom_thumbnail.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] 🌟ゲリラ配信！みんなでお話しよう🌟</div><div class="fi-date">2026/3/9 18:45 <span class="new-tag">NEW</span></div><div class="fi-type">🎥 動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">SHOWROOMに行く</button></div></div></div>
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_showroom_thumbnail.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] 🌟夜のまったりカラオケ配信🌟パート2</div><div class="fi-date">2026/2/28 23:04</div><div class="fi-type">📱 ショート動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">SHOWROOMに行く</button></div></div></div>
+                </div>
+                <a href="#" class="more-btn disabled">&gt;&gt;&gt;もっと見る</a>
+            </div>
+
+            <!-- TikTok -->
+            <div class="feed-sec">
+                <div class="platform-header">
+                    <div class="ph-icon is-img"><img src="images/icon/Tictok.png" alt="TikTok"></div> TikTok
+                </div>
+                <div class="feed-list">
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_tiktok_thumbnail.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] 今流行りの音源で踊ってみた🎵 #蒼くみ</div><div class="fi-date">2026/3/8 8:17 <span class="new-tag">NEW</span></div><div class="fi-type">📱 ショート動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">TikTokに行く</button></div></div></div>
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_tiktok_thumbnail.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] メイク中のオフショット💄 リクエスト募集中！</div><div class="fi-date">2026/3/7 23:04</div><div class="fi-type">📱 ショート動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">TikTokに行く</button></div></div></div>
+                    <div class="feed-item"><img class="fi-thumb" src="images/aoi_thumbnails/aoi_tiktok_thumbnail.png" alt="thumbnail"><div class="fi-body"><div class="fi-title">[蒼くみ] ライブ後のハイテンションでご挨拶！✨</div><div class="fi-date">2026/3/6 5:35</div><div class="fi-type">📱 ショート動画</div><div class="fi-actions"><button class="action-btn btn-archive" onclick="doArchive(this)">アーカイブ</button><button class="action-btn btn-edit" onclick="location.href='video_edit.html'">アーカイブ&編集</button><button class="action-btn btn-go" onclick="window.open('#','_blank')">TikTokに行く</button></div></div></div>
+                </div>
+                <a href="#" class="more-btn disabled">&gt;&gt;&gt;もっと見る</a>
+            </div>
+
+        </div>
+
+    </div>
+
+<script>
+    // Archive Animation logic
+    function doArchive(btn) {
+        if(btn.classList.contains('archived')) return;
+        btn.innerHTML = '<svg class="spin" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>';
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.7';
+        
+        setTimeout(() => {
+            btn.classList.add('archived');
+            btn.style.opacity = '1';
+            btn.innerHTML = '✓ アーカイブ済';
+        }, 1000);
+    }
+
+    function handleAlbumChange(val) {
+        if(val === 'CREATE_NEW') {
+            location.href = 'album_create.html';
+        } else {
+            localStorage.setItem('selectedCurrentAlbum', val);
+        }
+    }
+
+    function filterByDate(filterType, btn) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const now = new Date();
+        const formatDate = (d) => `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+        let targetDate = '';
+        if (filterType === 'today') targetDate = formatDate(now);
+        else if (filterType === 'yesterday') targetDate = formatDate(new Date(now.getTime() - 86400000));
+        else if (filterType === 'dayBefore') targetDate = formatDate(new Date(now.getTime() - 86400000 * 2));
+
+        document.querySelectorAll('.feed-sec').forEach(sec => {
+            let hasVisible = false;
+            const items = sec.querySelectorAll('.feed-item');
+            items.forEach(item => {
+                if (filterType === 'all') {
+                    item.style.display = 'flex';
+                    hasVisible = true;
+                } else {
+                    const dateEl = item.querySelector('.fi-date');
+                    if (dateEl && dateEl.innerText.startsWith(targetDate)) {
+                        item.style.display = 'flex';
+                        hasVisible = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                }
+            });
+            sec.style.display = hasVisible ? 'block' : 'none';
+        });
+    }
+
+    // Initially randomize some archive buttons and setup dummy dates precisely for filter test
+    document.addEventListener('DOMContentLoaded', () => {
+        const archiveBtns = document.querySelectorAll('.btn-archive');
+        archiveBtns.forEach(btn => {
+            if(Math.random() > 0.6) {
+                btn.classList.add('archived');
+                btn.innerHTML = '✓ アーカイブ済';
+            }
+        });
+
+        const now = new Date();
+        const formatDate = (d) => `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+        const todayStr = formatDate(now);
+        const yesterdayStr = formatDate(new Date(now.getTime() - 86400000));
+        const dayBeforeStr = formatDate(new Date(now.getTime() - 86400000 * 2));
+
+        document.querySelectorAll('.feed-sec').forEach(sec => {
+            const items = sec.querySelectorAll('.fi-date');
+            if(items[0]) { items[0].innerHTML = `${todayStr} 12:00 <span class="new-tag">NEW</span>`; }
+            if(items[1]) { items[1].innerHTML = `${yesterdayStr} 15:30`; }
+            if(items[2]) { items[2].innerHTML = `${dayBeforeStr} 09:15`; }
+        });
+
+        // Load albums into header select
+        const select = document.getElementById('headerAlbumSelect');
+        if(select) {
+            const custom = JSON.parse(localStorage.getItem('myCustomAlbums') || '[]');
+            custom.forEach(al => {
+                if (al.name === 'テストアルバム') return; // Skip test placeholder
+                const opt = document.createElement('option');
+                opt.value = al.name;
+                opt.innerText = al.name;
+                select.appendChild(opt);
+            });
+            const current = localStorage.getItem('selectedCurrentAlbum');
+            if(current) select.value = current;
+        }
+    });
+</script>
+<script src="nav.js"></script>
+<script src="i18n.js"></script>
+</body>
+</html>
+

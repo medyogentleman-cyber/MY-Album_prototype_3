@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MYアルバムリスト</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nav-height: 80px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background-color: var(--bg-color); color: var(--text-main); padding-bottom: calc(var(--nav-height) + 120px); -webkit-tap-highlight-color: transparent;}
+        
+        .app-container { max-width: 430px; margin: 0 auto; background: var(--bg-color); position: relative; min-height: 100vh;}
+
+        .dash-header { padding: 16px; position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 50; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;}
+        
+        /* Archive Card Style */
+        .archive-card { background: #FFF; border-radius: 20px; border: 1px solid var(--border-color); margin-bottom: 20px; overflow: hidden; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .ac-header { padding: 12px 16px; border-bottom: 1px solid rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; }
+        .ac-platform { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; color: var(--text-sub); }
+        .ac-platform img { width: 14px; height: 14px; object-fit: contain; }
+        .ac-main { display: flex; padding: 16px 16px 8px; gap: 16px; align-items: flex-start; }
+        .ac-info { flex: 1; min-width: 0; }
+        .ac-title { font-size: 15px; font-weight: 900; line-height: 1.4; margin-bottom: 4px; color: var(--text-main); }
+        .ac-date { font-size: 11px; color: var(--text-sub); font-weight: 700; }
+
+        /* Content Type Badge */
+        .thumb-wrap { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+        .type-badge { position: absolute; bottom: 4px; left: 4px; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 900; color: #FFF; display: flex; align-items: center; gap: 2px; }
+        .type-badge.video { background: #FF3B30; }
+        .type-badge.image { background: #007AFF; }
+
+        /* Version Section Refined */
+        .ac-version-sec { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 16px; }
+        .v-row { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: #FFF; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 2px 10px rgba(0,0,0,0.03); position: relative; }
+        .v-row:active { background: #FAFAFA; }
+        
+        .v-name { font-size: 13px; font-weight: 900; color: var(--text-main); }
+        .v-time { font-size: 10px; color: var(--text-sub); font-weight: 700; margin-top: 2px; }
+        .v-info-wrap { flex: 1; }
+        
+        /* 2x Thumbnail size (Original is 80x80, so 2x is 160px width) */
+        .v-thumb-edit { width: 100%; height: 120px; border-radius: 12px; object-fit: cover; background: #EEE; border: 1px solid rgba(0,0,0,0.05); }
+
+        .v-footer-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+        .v-btn-group { display:flex; align-items:center; gap:8px; }
+        
+        .v-action-btn { background: var(--bg-color); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 800; color: var(--text-main); cursor: pointer; transition: 0.2s; }
+        .v-action-btn:active { transform: scale(0.95); }
+        .v-action-btn.primary { background: var(--primary-light); color: var(--primary-color); border-color: var(--primary-color); }
+
+        .v-add-btn { width: 100%; border: 1.5px dashed #DDD; background: transparent; padding: 12px; border-radius: 16px; font-size: 13px; font-weight: 800; color: var(--text-sub); cursor: pointer; transition: 0.2s; }
+        .v-add-btn:hover { background: rgba(0,0,0,0.02); border-color: #CCC; }
+
+        /* Original Link in Header Area */
+        .original-btn-wrap { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+        .btn-orig { font-size: 11px; font-weight: 900; color: var(--primary-color); background: var(--primary-light); padding: 4px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+        
+        /* Checkbox Style */
+        .check-wrap { position: relative; width: 22px; height: 22px; flex-shrink: 0; display: none; }
+        .check-wrap.active { display: block; }
+        .custom-check { width: 100%; height: 100%; border: 2.5px solid var(--border-color); border-radius: 6px; cursor: pointer; appearance: none; position: relative; transition: 0.2s; background: #FFF; outline: none;}
+        .custom-check:checked { background: var(--primary-color); border-color: var(--primary-color); }
+        .custom-check:checked::after { content: '✓'; color: #FFF; position: absolute; font-size: 12px; font-weight: 900; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+        .v-item .v-check { position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; z-index: 5; display: none; }
+        .v-item .v-check.active { display: block; }
+        .v-item .custom-check { border-width: 2px; border-radius: 4px; }
+        .v-item .custom-check:checked::after { font-size: 10px; }
+
+        /* Bulk Action Bar */
+        .bulk-bar { position: fixed; bottom: calc(var(--nav-height) + 16px); left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 398px; background: rgba(34,34,34,0.9); backdrop-filter: blur(20px); border-radius: 20px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 150; box-shadow: 0 12px 40px rgba(0,0,0,0.4); visibility: hidden; opacity: 0; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translate(-50%, 40px); border: 1px solid rgba(255,255,255,0.1); }
+        .bulk-bar.show { visibility: visible; opacity: 1; transform: translate(-50%, 0); }
+        .bulk-count { color: #FFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+        .bulk-count span { color: var(--primary-color); font-size: 18px; }
+        .bulk-btn-row { display: flex; gap: 10px; }
+        .bulk-btn { border: none; padding: 12px 18px; border-radius: 12px; font-size: 11px; font-weight: 900; cursor: pointer; font-family: inherit; transition: 0.2s; position: relative; overflow: hidden; }
+        .bulk-btn:active { transform: scale(0.95); }
+        .btn-zip { background: linear-gradient(135deg, #FF6B00, #FF8A00); color: #FFF; }
+        .btn-storage { background: rgba(255,255,255,0.1); color: #FFF; border: 1px solid rgba(255,255,255,0.2); }
+
+        .select-toggle { font-size: 13px; font-weight: 800; color: #FFF; background: var(--text-main); border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .select-toggle.active { background: #EEE; color: #666; }
+
+        .all-select-btn { font-size: 12px; font-weight: 800; color: var(--primary-color); cursor: pointer; display: none; margin-top: 8px; align-self: flex-end;}
+        .all-select-btn.show { display: block; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); height: var(--nav-height); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0px); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); text-decoration: none; font-size: 10px; font-weight: 700; gap: 4px; }
+        .nav-item.active { color: var(--primary-color); }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
+        .nav-fab { background-color: var(--primary-color); color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -30px; box-shadow: 0 4px 12px rgba(255,107,0,0.3); font-size: 32px; line-height: 1; text-decoration: none; border: 4px solid var(--bg-color); }
+
+        .toast { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #FFF; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 800; z-index: 200; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .toast.show { opacity: 1; visibility: visible; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        
+        <header class="dash-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap;">
+                <img src="images/Myalbumlogo.png" alt="MYアルバム" style="height: 36px; width: auto; object-fit: contain;">
+            </div>
+            <div style="width: 100%; position: relative; display: flex; align-items: center; background: rgba(0,0,0,0.03); border-radius: 12px; padding: 4px 12px;">
+                <select class="album-select" style="width: 100%; appearance: none; background: transparent; border: none; font-size: 13px; font-weight: 900; padding: 8px 0; outline: none; color: var(--text-main);">
+                    <option value="✓公式 あおいちゃん推し活HUB" selected>✓公式 あおいちゃん推し活HUB</option>
+                </select>
+                <div style="position: absolute; right: 12px; pointer-events: none;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--text-main)"><path d="M7 10l5 5 5-5z"/></svg>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <div style="display:flex; gap:8px; padding:0 16px; margin-top:8px;">
+            <button class="nav-tab active" onclick="switchTab('archive')" style="flex:1; padding:12px; border-radius:12px; background:var(--primary-color); color:white; font-size:13px; font-weight:900; border:none; box-shadow:0 4px 12px rgba(255,107,0,0.2); transition:0.2s; cursor:pointer;">アーカイブ一覧</button>
+            <button class="nav-tab" onclick="switchTab('review')" style="flex:1; padding:12px; border-radius:12px; background:white; color:var(--text-sub); border:1px solid var(--border-color); font-size:13px; font-weight:900; transition:0.2s; cursor:pointer;">オリジナルコンテンツ申請</button>
+        </div>
+
+        <div id="tab-archive" class="content-area" style="padding: 16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                <h2 style="font-size: 16px; font-weight: 900; display:flex; align-items:center; gap:8px; margin: 0;">
+                    <span style="width:4px; height:16px; background:var(--primary-color); border-radius:2px;"></span> MYアルバム アーカイブ一覧
+                </h2>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="all-select-btn" id="allSelectBtn" onclick="selectAll()" style="margin: 0; padding: 6px 12px; background: transparent; border: none;">すべて選択</button>
+                    <button class="select-toggle" id="selectToggle" onclick="toggleSelectionMode()" style="padding: 6px 14px; font-size: 11px;">ダウンロード・保存</button>
+                </div>
+            </div>
+
+            <!-- Card 1 (Video) -->
+            <div class="archive-card">
+                <div class="ac-header">
+                    <div class="ac-platform"><img src="images/Myalbumlogo_small.png"> MYアルバム限定コンテンツ</div>
+                    <div class="check-wrap"><input type="checkbox" class="custom-check box-check" onchange="toggleBoxCheck(this)"></div>
+                </div>
+                <div class="ac-main">
+                    <div class="thumb-wrap">
+                        <img class="ac-thumb" src="images/aoi_thumbnails/aoi_fan_meeting.png" style="width:100%; height:100%; border-radius:12px; object-fit:cover;">
+                        <div class="type-badge video">🎥 動画</div>
+                    </div>
+                    <div class="ac-info">
+                        <div class="ac-title">秘蔵！ファンミの裏側大公開！</div>
+                        <div class="ac-date">2026/3/21 11:05</div>
+                        <div class="original-btn-wrap">
+                            <span style="font-size: 11px; font-weight: 800; color: var(--text-sub);">オリジナル</span>
+                            <a href="video_edit.html" class="btn-orig">編集 <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="ac-version-sec">
+                    <div class="v-row">
+                        <img src="images/aoi_thumbnails/aoi_fan_meeting_edit1.png" class="v-thumb-edit">
+                        <div class="v-footer-row">
+                            <div class="v-info-wrap">
+                                <div class="v-name">編集1</div>
+                                <div class="v-time">2026/03/21 12:45</div>
+                            </div>
+                            <div class="v-btn-group">
+                                <button class="v-action-btn" onclick="location.href='video_edit.html'">編集</button>
+                                <button class="v-action-btn" onclick="requestArtist(this)">アーティストへ申請</button>
+                                <div class="v-check"><input type="checkbox" class="custom-check" onchange="updateBulkBar()"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="v-row">
+                        <img src="images/aoi_thumbnails/aoi_fan_meeting_edit2.png" class="v-thumb-edit">
+                        <div class="v-footer-row">
+                            <div class="v-info-wrap">
+                                <div class="v-name">編集2</div>
+                                <div class="v-time">2026/03/21 13:05</div>
+                            </div>
+                            <div class="v-btn-group">
+                                <button class="v-action-btn" onclick="location.href='video_edit.html'">編集</button>
+                                <button class="v-action-btn" onclick="requestArtist(this)">アーティストへ申請</button>
+                                <div class="v-check"><input type="checkbox" class="custom-check" onchange="updateBulkBar()"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="v-add-btn" onclick="addEditVersion(this, 'video_edit.html', 'images/aoi_thumbnails/aoi_fan_meeting.png')">+ 編集を追加</button>
+                </div>
+            </div>
+
+            <!-- Card 2 (Image) -->
+            <div class="archive-card">
+                <div class="ac-header">
+                    <div class="ac-platform">📷 Instagram</div>
+                    <div class="check-wrap"><input type="checkbox" class="custom-check box-check" onchange="toggleBoxCheck(this)"></div>
+                </div>
+                <div class="ac-main">
+                    <div class="thumb-wrap">
+                        <img class="ac-thumb" src="images/aoi_thumbnails/aoi_instagram_post.png" style="width:100%; height:100%; border-radius:12px; object-fit:cover;">
+                        <div class="type-badge image">📸 画像</div>
+                    </div>
+                    <div class="ac-info">
+                        <div class="ac-title">あおいちゃんの休日ショット</div>
+                        <div class="ac-date">2026/3/20 15:42</div>
+                        <div class="original-btn-wrap">
+                            <span style="font-size: 11px; font-weight: 800; color: var(--text-sub);">オリジナル</span>
+                            <a href="photo_edit.html" class="btn-orig">編集 <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="ac-version-sec">
+                    <div style="padding: 12px; border: 1.5px dashed rgba(0,0,0,0.05); border-radius: 16px; text-align: center;">
+                        <span style="font-size: 11px; color: var(--text-sub); font-weight: 700;">編集履歴はありません</span>
+                    </div>
+                    <button class="v-add-btn" onclick="addEditVersion(this, 'photo_edit.html', 'images/aoi_thumbnails/aoi_instagram_post.png')">+ 編集を追加</button>
+                </div>
+            </div>
+
+            <!-- Card 3 (Video) -->
+            <div class="archive-card">
+                <div class="ac-header">
+                    <div class="ac-platform"><img src="images/Myalbumlogo_small.png"> MYアルバム限定コンテンツ</div>
+                    <div class="check-wrap"><input type="checkbox" class="custom-check box-check" onchange="toggleBoxCheck(this)"></div>
+                </div>
+                <div class="ac-main">
+                    <div class="thumb-wrap">
+                        <img class="ac-thumb" src="images/aoi_thumbnails/aoi_lesson_tired.png" style="width:100%; height:100%; border-radius:12px; object-fit:cover;">
+                        <div class="type-badge video">🎥 動画</div>
+                    </div>
+                    <div class="ac-info">
+                        <div class="ac-title">レッスン終わりのクタクタトーク</div>
+                        <div class="ac-date">2026/3/21 09:12</div>
+                        <div class="original-btn-wrap">
+                            <span style="font-size: 11px; font-weight: 800; color: var(--text-sub);">オリジナル</span>
+                            <a href="video_edit.html" class="btn-orig">編集 <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="ac-version-sec">
+                    <div class="v-row">
+                        <img src="images/aoi_thumbnails/aoi_lesson_edit1.png" class="v-thumb-edit">
+                        <div class="v-footer-row">
+                            <div class="v-info-wrap">
+                                <div class="v-name">編集1</div>
+                                <div class="v-time">2026/03/21 12:45</div>
+                            </div>
+                            <div class="v-btn-group">
+                                <button class="v-action-btn" onclick="location.href='video_edit.html'">編集</button>
+                                <button class="v-action-btn" onclick="requestArtist(this)">アーティストへ申請</button>
+                                <div class="v-check"><input type="checkbox" class="custom-check" onchange="updateBulkBar()"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="v-row">
+                        <img src="images/aoi_thumbnails/aoi_lesson_edit2.png" class="v-thumb-edit">
+                        <div class="v-footer-row">
+                            <div class="v-info-wrap">
+                                <div class="v-name">編集2</div>
+                                <div class="v-time">2026/03/21 13:00</div>
+                            </div>
+                            <div class="v-btn-group">
+                                <button class="v-action-btn" onclick="location.href='video_edit.html'">編集</button>
+                                <button class="v-action-btn" onclick="requestArtist(this)">アーティストへ申請</button>
+                                <div class="v-check"><input type="checkbox" class="custom-check" onchange="updateBulkBar()"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="v-row">
+                        <img src="images/aoi_thumbnails/aoi_lesson_edit3.png" class="v-thumb-edit">
+                        <div class="v-footer-row">
+                            <div class="v-info-wrap">
+                                <div class="v-name">編集3</div>
+                                <div class="v-time">2026/03/21 13:10</div>
+                            </div>
+                            <div class="v-btn-group">
+                                <button class="v-action-btn" onclick="location.href='video_edit.html'">編集</button>
+                                <button class="v-action-btn" onclick="requestArtist(this)">アーティストへ申請</button>
+                                <div class="v-check"><input type="checkbox" class="custom-check" onchange="updateBulkBar()"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="v-add-btn" onclick="addEditVersion(this, 'video_edit.html', 'images/aoi_thumbnails/aoi_lesson_tired.png')">+ 編集を追加</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-review" class="content-area" style="padding: 16px; display:none;">
+            <h2 style="font-size: 16px; font-weight: 900; margin-bottom: 16px; display:flex; align-items:center; gap:8px;">
+                <span style="width:4px; height:16px; background:var(--primary-color); border-radius:2px;"></span> アーティストへコンテンツレビュー申請
+            </h2>
+
+            <!-- Review Application Form -->
+            <div style="background:white; border-radius:20px; padding:20px; border:1px solid var(--border-color); box-shadow:0 4px 20px rgba(0,0,0,0.05); margin-bottom: 32px;">
+                <label style="font-size:12px; font-weight:900; color:var(--text-main); margin-bottom:8px; display:block;">コンテンツ名 (20文字以内)</label>
+                <input type="text" id="review-title" placeholder="例: ライブ最高でした！" maxlength="20" oninput="validateReviewForm()" style="width:100%; padding:12px 16px; border-radius:12px; border:1px solid var(--border-color); font-size:14px; background:var(--bg-color); outline:none; transition:0.2s; margin-bottom:8px;">
+                <div id="review-title-error" style="font-size:10px; color:#FF3B30; font-weight:800; display:none; margin-bottom:16px;">20文字以内で入力してください</div>
+
+                <label style="font-size:12px; font-weight:900; color:var(--text-main); margin-bottom:8px; display:block; margin-top:16px;">ファイルのアップロード</label>
+                <div style="border:2px dashed #CBD5E1; background:#F8FAFC; border-radius:16px; padding:24px; text-align:center; cursor:pointer; margin-bottom:8px;" onclick="document.getElementById('review-file').click()">
+                    <div style="font-size:24px; margin-bottom:8px;">📁</div>
+                    <div style="font-size:13px; font-weight:900; color:#334155; margin-bottom:4px;">タップしてファイルを選択</div>
+                    <div style="font-size:10px; font-weight:700; color:#94A3B8;">最大 32GB まで</div>
+                    <input type="file" id="review-file" style="display:none;" onchange="validateReviewForm()">
+                </div>
+                
+                <button id="btn-submit-review" disabled style="width:100%; padding:16px; border-radius:12px; border:none; background:#E2E8F0; color:#94A3B8; font-size:14px; font-weight:900; margin-top:16px; transition:0.3s; cursor:pointer;" onclick="submitReview()">申請する</button>
+            </div>
+
+            <h2 style="font-size: 16px; font-weight: 900; margin-bottom: 16px; display:flex; align-items:center; gap:8px;">
+                <span style="width:4px; height:16px; background:var(--primary-color); border-radius:2px;"></span> 申請履歴
+            </h2>
+
+            <!-- Review Status List -->
+            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:40px;">
+                <div style="background:white; border-radius:16px; padding:16px; border:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 10px rgba(0,0,0,0.02);">
+                    <div style="flex:1;">
+                        <div style="font-size:14px; font-weight:900; color:var(--text-main); margin-bottom:4px;">あおいちゃん生誕祭カメラ</div>
+                        <div style="font-size:11px; font-weight:700; color:var(--text-sub);">申請日: 2026/03/26 10:05</div>
+                    </div>
+                    <div style="padding:4px 10px; border-radius:8px; background:#F1F5F9; color:#64748B; font-size:11px; font-weight:900;">未確認</div>
+                </div>
+
+                <div style="background:linear-gradient(135deg, #FFF, #FFF8F0); border-radius:16px; padding:16px; border:1px solid #FFD8B8; display:flex; align-items:center; justify-content:space-between; box-shadow:0 4px 16px rgba(255,107,0,0.08); cursor: pointer;" onclick="location.href='view_tokyolive_list.html#pane-god'">
+                    <div style="flex:1;">
+                        <div style="font-size:14px; font-weight:900; color:var(--text-main); margin-bottom:4px;">神ファンサの瞬間！！</div>
+                        <div style="font-size:11px; font-weight:700; color:var(--text-sub);">申請日: 2026/03/24 18:30</div>
+                    </div>
+                    <div style="padding:4px 10px; border-radius:8px; background:linear-gradient(to right, #FF9955, #FF6B00); color:white; font-size:11px; font-weight:900; box-shadow:0 2px 8px rgba(255,107,0,0.3);">👑 神認定</div>
+                </div>
+
+                <div style="background:white; border-radius:16px; padding:16px; border:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 10px rgba(0,0,0,0.02); cursor: pointer;" onclick="location.href='view_tokyolive_list.html#pane-official'">
+                    <div style="flex:1;">
+                        <div style="font-size:14px; font-weight:900; color:var(--text-main); margin-bottom:4px;">ライブ開演前風景</div>
+                        <div style="font-size:11px; font-weight:700; color:var(--text-sub);">申請日: 2026/03/20 12:15</div>
+                    </div>
+                    <div style="padding:4px 10px; border-radius:8px; background:#ECFDF5; color:#10B981; font-size:11px; font-weight:900;">承認</div>
+                </div>
+
+                <div style="background:white; border-radius:16px; padding:16px; border:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; opacity:0.6;">
+                    <div style="flex:1;">
+                        <div style="font-size:14px; font-weight:900; color:var(--text-main); margin-bottom:4px; text-decoration:line-through;">ブレブレの写真集</div>
+                        <div style="font-size:11px; font-weight:700; color:var(--text-sub);">申請日: 2026/03/15 09:40</div>
+                    </div>
+                    <div style="padding:4px 10px; border-radius:8px; background:#FEF2F2; color:#EF4444; font-size:11px; font-weight:900;">却下</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bulk-bar" id="bulkBar">
+            <!-- Normal Actions -->
+            <div id="bulk-actions" style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
+                <div class="bulk-count"><span id="selectedCount">0</span> 件選択中</div>
+                <div class="bulk-btn-row">
+                    <button class="bulk-btn btn-zip" onclick="doBulkAction('ZIP')">ZIPダウンロード</button>
+                    <button class="bulk-btn btn-storage" onclick="doBulkAction('STORAGE')">MYストレージ保存</button>
+                </div>
+            </div>
+            
+            <!-- Success State for MY Storage -->
+            <div id="bulk-success" style="display: none; width: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+                <span style="color: #FFF; font-size:13px; font-weight: 900; line-height: 1.4; text-align: center;">☁️ MYストレージの<br>ダウンロードに保存しました</span>
+                <a href="storage.html#download" style="font-size:11px; color: #FFF; background: var(--primary-color); border: 1px solid rgba(255,255,255,0.3); padding: 5px 16px; border-radius: 20px; text-decoration: none; font-weight: 900; box-shadow: 0 4px 10px rgba(255,107,0,0.3);">👉 ここをクリックして確認</a>
+            </div>
+        </div>
+
+        <div class="toast" id="bulkToast"></div>
+        <!-- nav.js will inject the unified footer here -->
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.nav-tab').forEach(t => {
+                t.style.background = 'white';
+                t.style.color = 'var(--text-sub)';
+                t.style.border = '1px solid var(--border-color)';
+                t.style.boxShadow = 'none';
+            });
+            event.target.style.background = 'var(--primary-color)';
+            event.target.style.color = 'white';
+            event.target.style.border = 'none';
+            event.target.style.boxShadow = '0 4px 12px rgba(255,107,0,0.2)';
+            
+            document.getElementById('tab-archive').style.display = tabId === 'archive' ? 'block' : 'none';
+            document.getElementById('tab-review').style.display = tabId === 'review' ? 'block' : 'none';
+        }
+
+        function validateReviewForm() {
+            const title = document.getElementById('review-title').value;
+            const file = document.getElementById('review-file').files.length > 0;
+            const btn = document.getElementById('btn-submit-review');
+            const err = document.getElementById('review-title-error');
+            
+            if(title.length > 20) {
+                err.style.display = 'block';
+                document.getElementById('review-title').style.borderColor = '#FF3B30';
+            } else {
+                err.style.display = 'none';
+                document.getElementById('review-title').style.borderColor = 'var(--border-color)';
+            }
+            
+            if(title.length > 0 && title.length <= 20 && file) {
+                btn.disabled = false;
+                btn.style.background = 'var(--primary-color)';
+                btn.style.color = 'white';
+                btn.style.boxShadow = '0 4px 16px rgba(255,107,0,0.3)';
+            } else {
+                btn.disabled = true;
+                btn.style.background = '#E2E8F0';
+                btn.style.color = '#94A3B8';
+                btn.style.boxShadow = 'none';
+            }
+        }
+
+        function submitReview() {
+            const btn = document.getElementById('btn-submit-review');
+            btn.innerText = '送信中...';
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                btn.style.background = '#10B981';
+                btn.style.boxShadow = '0 4px 16px rgba(16,185,129,0.3)';
+                btn.style.opacity = '1';
+                btn.innerText = '申請完了！';
+                
+                showToast('アーティストへ公認申請を送信しました！');
+                
+                setTimeout(() => {
+                    document.getElementById('review-title').value = '';
+                    document.getElementById('review-file').value = '';
+                    validateReviewForm();
+                    btn.innerText = '申請する';
+                    btn.style.pointerEvents = 'auto';
+                }, 2000);
+            }, 1500);
+        }
+
+        function requestArtist(btn) {
+            btn.innerText = '申請中...';
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.5';
+            setTimeout(() => {
+                btn.innerText = '申請完了';
+                btn.style.background = '#F1F5F9';
+                btn.style.color = '#64748B';
+                btn.style.borderColor = 'transparent';
+                showToast('アーティストへ申請を完了しました');
+            }, 800);
+        }
+
+        let isSelectionMode = false;
+
+        function addEditVersion(btn, link, thumb) {
+            const sec = btn.parentElement;
+            const rows = sec.querySelectorAll('.v-row:not(.original)');
+            const count = rows.length + 1;
+            const now = new Date();
+            const timeStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+            
+            const newRow = document.createElement('div');
+            newRow.className = 'v-row';
+            newRow.style.animation = 'slideUp 0.3s ease';
+            newRow.innerHTML = `
+                <img src="${thumb}" class="v-thumb-edit" style="filter: brightness(1.1) contrast(1.1);">
+                <div class="v-footer-row">
+                    <div class="v-info-wrap">
+                        <div class="v-name">編集${count}</div>
+                        <div class="v-time">${timeStr}</div>
+                    </div>
+                    <div class="v-btn-group">
+                        <button class="v-action-btn" onclick="location.href='${link}'">編集</button>
+                        <button class="v-action-btn" onclick="requestArtist(this)">アーティストへ申請</button>
+                        <div class="v-check ${isSelectionMode ? 'active' : ''}"><input type="checkbox" class="custom-check" onchange="updateBulkBar()"></div>
+                    </div>
+                </div>
+            `;
+            sec.insertBefore(newRow, btn);
+            
+            if(count >= 5) btn.style.display = 'none';
+        }
+
+        function toggleSelectionMode() {
+            isSelectionMode = !isSelectionMode;
+            const toggleBtn = document.getElementById('selectToggle');
+            const allBtn = document.getElementById('allSelectBtn');
+            const checks = document.querySelectorAll('.check-wrap, .v-check');
+            
+            if (isSelectionMode) {
+                toggleBtn.innerText = 'キャンセル';
+                toggleBtn.classList.add('active');
+                allBtn.classList.add('show');
+                checks.forEach(c => c.classList.add('active'));
+                showToast('ダウンロード・保存するコンテンツに✓を付けてください');
+            } else {
+                toggleBtn.innerText = 'ダウンロード・保存';
+                toggleBtn.classList.remove('active');
+                allBtn.classList.remove('show');
+                checks.forEach(c => c.classList.remove('active'));
+                document.querySelectorAll('.custom-check').forEach(ch => ch.checked = false);
+                updateBulkBar();
+            }
+        }
+
+        function toggleBoxCheck(boxCheck) {
+            const card = boxCheck.closest('.archive-card');
+            if(card) {
+                const childChecks = card.querySelectorAll('.v-check .custom-check');
+                childChecks.forEach(c => c.checked = boxCheck.checked);
+            }
+            updateBulkBar();
+        }
+
+        function selectAll() {
+            const checks = document.querySelectorAll('.custom-check');
+            const allChecked = Array.from(checks).every(c => c.checked);
+            checks.forEach(c => c.checked = !allChecked);
+            updateBulkBar();
+            document.getElementById('allSelectBtn').innerText = !allChecked ? '選択解除' : 'すべて選択';
+        }
+
+        function updateBulkBar() {
+            // Auto Update parent box checkboxes
+            document.querySelectorAll('.archive-card').forEach(card => {
+                const boxCheck = card.querySelector('.box-check');
+                if(!boxCheck) return;
+                const childChecks = card.querySelectorAll('.v-check .custom-check');
+                if(childChecks.length > 0) {
+                    const allChecked = Array.from(childChecks).every(c => c.checked);
+                    boxCheck.checked = allChecked;
+                }
+            });
+
+            const checkedCount = document.querySelectorAll('.custom-check:checked:not(.box-check)').length;
+            const bar = document.getElementById('bulkBar');
+            document.getElementById('selectedCount').innerText = checkedCount;
+            if (checkedCount > 0 && isSelectionMode) bar.classList.add('show');
+            else bar.classList.remove('show');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('bulkToast');
+            t.innerText = msg;
+            t.style.background = 'rgba(0,0,0,0.85)';
+            t.style.color = '#FFF';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3500);
+        }
+
+        function doBulkAction(type) {
+            const count = document.querySelectorAll('.custom-check:checked').length;
+            const toast = document.getElementById('bulkToast');
+            const actionsArea = document.getElementById('bulk-actions');
+            const successArea = document.getElementById('bulk-success');
+            
+            if(type === 'ZIP') {
+                toast.innerHTML = `<div style="display:flex; align-items:center; gap:10px;">
+                    <div class="spin" style="width:16px; height:16px; border:2px solid #FFF; border-top-color:transparent; border-radius:50%;"></div>
+                    <span>${count}件をZIPにまとめています...</span>
+                </div>`;
+                toast.classList.add('show');
+                
+                setTimeout(() => { 
+                    toast.classList.remove('show'); 
+                    toggleSelectionMode(); 
+                }, 3500);
+            } else {
+                // MY Storage save action - Swap bulk bar content
+                actionsArea.style.display = 'none';
+                successArea.style.display = 'flex';
+                
+                console.log("Saving each item to MY Storage...");
+
+                setTimeout(() => { 
+                    actionsArea.style.display = 'flex';
+                    successArea.style.display = 'none';
+                    toggleSelectionMode(); 
+                }, 4000);
+            }
+        }
+    </script>
+    <script src="nav.js"></script>
+<script src="i18n.js"></script>
+</body>
+</html>

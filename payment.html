@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>DMC PAY取引情報 - MYアルバム</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --nav-height: 80px;
+        }
+        body { padding-bottom: calc(var(--nav-height) + 20px); -webkit-tap-highlight-color: transparent; }
+        .app-container { max-width: 430px; margin: 0 auto; background: var(--bg-color); min-height: 100vh;}
+
+        .revenue-hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #FF9955 100%);
+            color: white; padding: 24px 16px; border-radius: 0 0 24px 24px;
+            margin-bottom: 24px; box-shadow: 0 4px 12px rgba(255,107,0,0.2);
+        }
+        .earn-label { font-size: 14px; font-weight: 800; opacity: 0.9; }
+        .earn-amount { font-size: 32px; font-weight: 900; display: flex; align-items: baseline; gap: 4px; margin: 8px 0; }
+        .earn-currency { font-size: 16px; font-weight: 800; }
+
+        .action-list {
+            display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px;
+        }
+        .action-item {
+            background: white; border: 1px solid var(--border-color); padding: 16px;
+            border-radius: 16px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transition: 0.2s;
+        }
+        .action-item:active { transform: scale(0.98); }
+        .action-title { font-weight: 900; font-size: 14px; margin-bottom: 4px; color: var(--text-main); }
+        .action-desc { font-size: 11px; color: var(--text-sub); font-weight: 600; line-height: 1.4; }
+
+        /* Payment History Styles */
+        .t-group { margin-bottom: 24px; }
+        .t-month { font-size: 14px; font-weight: 900; color: var(--text-main); margin-bottom: 12px; padding-left: 4px; border-left: 4px solid var(--primary-color);}
+        .t-card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
+        .t-info { flex: 1; margin-right: 12px; }
+        .t-title { font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 6px; line-height: 1.4;}
+        .t-date { font-size: 11px; color: var(--text-sub); font-weight: 600;}
+        .t-amount { font-size: 15px; font-weight: 900; white-space: nowrap; }
+        .amt-pay { color: var(--text-main); }
+        .amt-inc { color: #34C759; }
+        .t-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 900; margin-right: 6px; vertical-align: bottom;}
+        .badge-pay { background: #F2F2F7; color: var(--text-sub); }
+        .badge-inc { background: rgba(52,199,89,0.1); color: #34C759; }
+
+        /* Storage Styles */
+        .sc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .sc-title { font-size: 15px; font-weight: 900; color: var(--text-main); }
+        .badge-active { background: var(--primary-color); color: #FFF; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; }
+        .s-card { background: #FFF; border-radius: 16px; border: 1px solid var(--border-color); padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); }
+        .progress-bar-wrap { width: 100%; height: 8px; background: #EAE8F2; border-radius: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--primary-color); border-radius: 4px; }
+        
+        .c-app-card { background: #FFF; border-radius: 16px; border: 1px solid var(--border-color); padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; }
+        .c-app-icon { width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--bg-color); border-radius: 12px;}
+        .c-app-icon svg { width: 24px; height: 24px; fill: var(--text-main); }
+        .c-app-info { flex: 1; }
+        .c-app-actions { display: flex; gap: 8px; margin-top: 12px; }
+        
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 800; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 200; box-shadow: 0 4px 12px rgba(0,0,0,0.2);}
+        .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+        
+        /* Unified Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); height: var(--nav-height); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0px); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); text-decoration: none; font-size: 10px; font-weight: 700; gap: 4px; transition: 0.2s;}
+        .nav-item.active { color: var(--primary-color); }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
+        .nav-fab { background-color: var(--primary-color); color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -30px; box-shadow: 0 4px 12px rgba(255,107,0,0.3); font-size: 32px; line-height: 1; text-decoration: none; border: 4px solid var(--bg-color); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header" style="background:var(--primary-color); color:white; border:none; padding: 16px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:90;">
+            <div style="width: 24px;"></div> <!-- Spacer -->
+            <div style="font-size: 16px; font-weight: 900;">DMC PAY取引情報</div>
+            <div style="width: 24px;"></div>
+        </header>
+
+        <!-- Revenue Dashboard -->
+        <div class="revenue-hero">
+            <div class="earn-label">DMC PAY残高</div>
+            <div class="earn-amount">
+                12,450.00 <span class="earn-currency">DMCC</span>
+            </div>
+            <div style="font-size: 12px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:700;">≈ ¥186,750 JPY</span>
+                <button class="btn btn-sm" style="background:white; color:var(--primary-color); width:auto; padding: 8px 16px; font-weight:800; border-radius:20px; border:none;" onclick="alert('DMC PAYへ残高を移動いたします。よろしいですか？')">DMC PAYに移動</button>
+            </div>
+        </div>
+
+        <div class="p-4" style="padding: 0 16px;">
+            <h2 class="mb-4 text-center" style="font-size:18px; font-weight:900; color:var(--text-main); margin-bottom: 20px;">DMC PAYで購入</h2>
+            
+            <div class="action-list" style="margin-bottom: 32px;">
+                <div class="action-item" style="cursor:pointer;" onclick="window.open('https://www.udemy.com/course/sns-vllo/')">
+                    <div style="width: 60px; height: 60px; border-radius: 12px; background: url('images/summer.png') center/cover; margin-right: 12px; flex-shrink: 0;"></div>
+                    <div style="flex: 1; margin: 0;">
+                        <div class="action-title" style="font-size: 13px;">スマホで簡単！VLLO動画編集</div>
+                        <div class="action-desc" style="margin-bottom: 4px;">推し活SNSで映える神編集テクニック</div>
+                        <div style="color:var(--primary-color); font-weight:900; font-size:14px;">1,500 DMCC</div>
+                    </div>
+                </div>
+
+                <div class="action-item" style="cursor:pointer;" onclick="window.open('https://www.udemy.com/topic/video-editing/')">
+                    <div style="width: 60px; height: 60px; border-radius: 12px; background: url('images/live.png') center/cover; margin-right: 12px; flex-shrink: 0;"></div>
+                    <div style="flex: 1; margin: 0;">
+                        <div class="action-title" style="font-size: 13px;">ゼロから学ぶ本格動画編集</div>
+                        <div class="action-desc" style="margin-bottom: 4px;">プロ並みのクオリティを目指す方向け</div>
+                        <div style="color:var(--primary-color); font-weight:900; font-size:14px;">2,800 DMCC</div>
+                    </div>
+                </div>
+
+                <div class="action-item" style="cursor:pointer;" onclick="window.open('https://www.udemy.com/topic/davinci-resolve/')">
+                    <div style="width: 60px; height: 60px; border-radius: 12px; background: url('images/twoshot.png') center/cover; margin-right: 12px; flex-shrink: 0;"></div>
+                    <div style="flex: 1; margin: 0;">
+                        <div class="action-title" style="font-size: 13px;">DaVinci Resolve マスター</div>
+                        <div class="action-desc" style="margin-bottom: 4px;">映画級のカラーグレーディングを実践</div>
+                        <div style="color:var(--primary-color); font-weight:900; font-size:14px;">4,200 DMCC</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction History -->
+            <h3 class="mb-4" style="font-size:18px; font-weight:900; color:var(--text-main); margin-bottom: 8px;">取引履歴</h3>
+            <p style="font-size: 12px; font-weight: 700; color: var(--text-sub); margin-bottom: 24px;">過去3か月間の課金・収入の実績</p>
+
+            <div class="t-group">
+                <div class="t-month">2026年 4月</div>
+
+                <div class="t-card">
+                    <div class="t-info">
+                        <div class="t-title"><span class="t-badge badge-pay">支払い</span> 【グッズ購入】あおいちゃんオリジナル フルカラーTシャツ</div>
+                        <div class="t-date">2026/4/6 15:30</div>
+                    </div>
+                    <div class="t-amount amt-pay">-4,500円</div>
+                </div>
+
+                <div class="t-card">
+                    <div class="t-info">
+                        <div class="t-title"><span class="t-badge badge-pay">支払い</span> 【グッズ購入】あおいちゃんアクリルスタンド</div>
+                        <div class="t-date">2026/4/5 10:15</div>
+                    </div>
+                    <div class="t-amount amt-pay">-1,800円</div>
+                </div>
+            </div>
+
+            <div class="t-group">
+                <div class="t-month">2026年 3月</div>
+
+                <div class="t-card">
+                    <div class="t-info">
+                        <div class="t-title"><span class="t-badge badge-pay">支払い</span> あおいちゃん熱烈応援アルバム</div>
+                        <div class="t-date">2026/3/19 14:32</div>
+                    </div>
+                    <div class="t-amount amt-pay">-200円</div>
+                </div>
+            </div>
+
+            <div class="t-group">
+                <div class="t-month">2026年 2月</div>
+
+                <div class="t-card">
+                    <div class="t-info">
+                        <div class="t-title"><span class="t-badge badge-inc">収入</span> あるあるあるね</div>
+                        <div class="t-date">2026/2/28 18:45</div>
+                    </div>
+                    <div class="t-amount amt-inc">+500円</div>
+                </div>
+
+                <div class="t-card">
+                    <div class="t-info">
+                        <div class="t-title"><span class="t-badge badge-pay">支払い</span> サブスクリプション2026年3月</div>
+                        <div class="t-date">2026/2/28 00:01</div>
+                    </div>
+                    <div class="t-amount amt-pay">-1,250円</div>
+                </div>
+
+                <div class="t-card">
+                    <div class="t-info">
+                        <div class="t-title"><span class="t-badge badge-pay">支払い</span> プレミアムストレージ2026年3月</div>
+                        <div class="t-date">2026/2/28 00:01</div>
+                    </div>
+                    <div class="t-amount amt-pay">-1,000円</div>
+                </div>
+
+                <div class="t-card">
+                    <div class="t-info">
+                        <div class="t-title"><span class="t-badge badge-inc">収入</span> あおいちゃんの推し活HUB 1万音量</div>
+                        <div class="t-date">2026/2/15 21:10</div>
+                    </div>
+                    <div class="t-amount amt-inc">+100円</div>
+                </div>
+
+                <div class="t-card">
+                    <div class="t-info">
+                        <div class="t-title"><span class="t-badge badge-inc">収入</span> あおいちゃんの推し活HUB 1000ファン</div>
+                        <div class="t-date">2026/2/15 21:10</div>
+                    </div>
+                    <div class="t-amount amt-inc">+100円</div>
+                </div>
+            </div>
+
+            <div style="height: 16px;"></div>
+
+            <!-- Quota Meter (Imported from storage.html) -->
+            <div class="mb-2 mt-8">
+                <h3 class="text-sm font-black text-slate-800 mb-2 text-center" style="font-size:18px;">利用中のプラン</h3>
+            </div>
+            <div class="bg-white border-2 border-slate-200 rounded-2xl p-5 mb-10 shadow-sm text-left">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="text-xs font-black text-slate-700 flex items-center gap-1">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        伝送量・利用状況
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 bg-slate-100 text-slate-600 rounded-md text-[10px] font-black border border-slate-200">スタンダードプラン</span>
+                        <button class="px-2 py-1 bg-orange-100 text-orange-600 hover:bg-orange-200 rounded-md text-[10px] font-black border border-orange-200 transition-colors" onclick="location.href='storage.html'">アップグレード</button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-end mb-2">
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-500 mb-1">残りの伝送量 (年間)</div>
+                        <div class="text-2xl font-black text-slate-800">510.5<span class="text-sm font-bold text-slate-500 ml-1">GB</span></div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-[10px] font-bold text-slate-500 mb-1">総利用枠</div>
+                        <div class="text-sm font-black text-slate-600">1.0 TB</div>
+                    </div>
+                </div>
+                <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
+                    <div class="h-full bg-blue-500 rounded-full" style="width: 51%;"></div>
+                </div>
+                <p class="text-[10px] font-bold text-slate-400">※アップロード・ダウンロードの合計データ量が転送料金としてカウントされます。</p>
+            </div>
+            
+            <div style="height: 60px;"></div>
+        </div>
+
+        <div id="toast" class="toast">URLをコピーしました</div>
+
+        
+    </div>
+    
+    <script>
+        // 共有機能モック
+        function shareApp(platform) {
+            const url = platform === 'win' 
+                ? 'https://myalbum.example.com/download/mystorage_win.exe' 
+                : 'https://myalbum.example.com/download/mystorage_mac.dmg';
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: `MYストレージ (${platform.toUpperCase()}版)`,
+                    text: '大容量ファイル保存用PCクライアント',
+                    url: url
+                }).catch(err => {
+                    copyToClipboard(url);
+                });
+            } else {
+                copyToClipboard(url);
+            }
+        }
+
+        // クリップボードコピー
+        function copyToClipboard(text) {
+            if(navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('URLをコピーしました');
+                }).catch(err => {
+                    showToast('コピーに失敗しました');
+                });
+            } else {
+                showToast('URLをコピーしました (Mock)');
+            }
+        }
+
+        // トースト通知
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+    </script>
+<script src="nav.js"></script>
+<script src="i18n.js"></script>
+</body>
+</html>

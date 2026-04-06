@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ログイン & 初期登録 - MYアルバム</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .login-hero { text-align: center; margin-bottom: 40px; padding-top: 20px; }
+        .invite-notice {
+            background: #FFF8F2; border: 1px solid #FFE0C2; border-radius: 12px;
+            padding: 16px; margin-bottom: 32px; text-align: center;
+        }
+        .artist-name { color: var(--primary-color); font-size: 20px; font-weight: 900; }
+        .invite-period { font-size: 11px; color: #CC5500; font-weight: 700; margin-top: 4px; }
+        
+        .onboarding-container { background: white; border-radius: 24px; padding: 32px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .step-indicator { display: flex; gap: 8px; margin-bottom: 24px; justify-content: center; }
+        .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #E5E5EA; transition: 0.3s; }
+        .step-dot.active { background: var(--primary-color); width: 24px; border-radius: 4px; }
+        
+        .optional-tag { font-size: 10px; font-weight: 800; color: #8E8E93; background: #F2F2F7; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+        .required-tag { font-size: 10px; font-weight: 800; color: #FFF; background: var(--danger); padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+        
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; visibility: hidden; opacity: 0; transition: 0.3s ease; display: flex; justify-content: center; align-items: flex-end; }
+        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal-sheet { background: #fff; width: 100%; max-width: 430px; height: 100vh; overflow-y: auto; transform: translateY(100vh); transition: 0.4s cubic-bezier(0.19, 1, 0.22, 1); display: flex; flex-direction: column; }
+        .modal-overlay.active .modal-sheet { transform: translateY(0); }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .plan-card input[type="radio"] { display: none; }
+
+        .onboarding-step { display: none; }
+        .onboarding-step.active { display: block; animation: fade 0.3s; }
+        @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+        /* General layout additions from idol_1 */
+        .p-6 { padding: 24px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-4 { margin-bottom: 16px; }
+        .mb-6 { margin-bottom: 24px; }
+        .mb-8 { margin-bottom: 32px; }
+        .mb-10 { margin-bottom: 40px; }
+        .mb-12 { margin-bottom: 48px; }
+        .mt-1 { margin-top: 4px; }
+        .mt-2 { margin-top: 8px; }
+        .flex { display: flex; }
+        .gap-2 { gap: 8px; }
+        .gap-3 { gap: 12px; }
+        .gap-4 { gap: 16px; }
+        .gap-6 { gap: 24px; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .w-full { width: 100%; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        
+        /* Specific Idol_1 input styles */
+        .label { display: block; font-size: 13px; font-weight: 800; margin-bottom: 6px; color: var(--text-main); }
+        .input { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1.5px solid var(--border-color); background: #f9f9f9; font-size: 15px; font-weight: 500; outline: none; transition: 0.2s; box-sizing: border-box; }
+        .input:focus { border-color: var(--primary-color); background: #fff; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Step 0: Login Choice -->
+        <div id="step-login" class="onboarding-step active p-6">
+            <!-- LANGUAGE SWITCHER -->
+            <div style="display:flex; justify-content:flex-end; margin-bottom: 24px;">
+                <div style="background: #e2e8f0; border-radius: 20px; padding: 4px; display: flex; gap: 4px;">
+                    <button id="lang-ja" onclick="changeLang('ja')" style="border:none; padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: var(--text-main);">🇯🇵 JP</button>
+                    <button id="lang-en" onclick="changeLang('en')" style="border:none; padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; background: transparent; color: var(--text-sub);">🇺🇸 EN</button>
+                </div>
+            </div>
+
+            <div class="login-hero">
+                <div class="hero-image" style="width: 80px; height: 80px; background: white; border-radius: 20px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+                    <img src="images/Myalbumlogo_small.png" alt="Logo" style="width: 48px;">
+                </div>
+                <div class="logo-text" style="font-size: 32px; font-weight: 900;">MY<span class="logo-accent" style="color:var(--primary-color);">アルバム</span></div>
+            </div>
+
+            <div class="invite-notice anim-fade">
+                <p class="text-xs" style="color:var(--text-sub); margin-bottom: 8px;">✓ 公式 あおいちゃん推し活HUB</p>
+                <p class="artist-name">特別招待枠</p>
+                <p class="invite-period">あおいちゃんの活動を、あなただけの特別なアルバムに。</p>
+            </div>
+
+            <div class="onboarding-container anim-fade" style="animation-delay: 0.1s;">
+                <h3 class="mb-6 text-center">ログイン / 新規登録</h3>
+                <button class="btn btn-outline w-full mb-4" onclick="document.getElementById('step-login').classList.remove('active'); document.getElementById('step-1').classList.add('active');">
+                    <img src="images/icon/Google.png" alt="Google" style="width:20px; margin-right:8px; vertical-align:middle;">
+                    Googleでログイン
+                </button>
+                <button class="btn w-full mb-4" style="background: #000; color: white;" onclick="document.getElementById('step-login').classList.remove('active'); document.getElementById('step-1').classList.add('active');">
+                    <img src="images/icon/X.png" alt="X" style="width:20px; margin-right:8px; vertical-align:middle;">
+                    𝕏 でログイン
+                </button>
+                <button class="btn w-full mb-4" style="background: #0866FF; color: white;" onclick="document.getElementById('step-login').classList.remove('active'); document.getElementById('step-1').classList.add('active');">
+                    <img src="images/icon/Facebook.png" alt="Meta" style="width:20px; margin-right:8px; vertical-align:middle;">
+                    Facebook でログイン
+                </button>
+                <button class="btn w-full" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white;" onclick="document.getElementById('step-login').classList.remove('active'); document.getElementById('step-1').classList.add('active');">
+                    <img src="images/icon/Instagram.png" alt="Instagram" style="width:20px; margin-right:8px; vertical-align:middle;">
+                    Instagram でログイン
+                </button>
+            </div>
+
+            <p class="text-xs text-center mt-4" style="color: var(--text-sub); margin-top: 32px;">
+                利用規約 と プライバシーポリシー に同意した上でログインしてください。
+            </p>
+
+
+        </div>
+
+        <!-- Step 1: Basic Info Profile -->
+        <div id="step-1" class="onboarding-step p-6">
+            <div class="step-indicator"><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+            <h2 class="mb-2">基本情報の登録</h2>
+            <p class="text-sub mb-6">あなたのプロフィール情報として表示される内容を登録してください。</p>
+
+            <div class="input-group mb-4">
+                <label class="label">名前 <span class="optional-tag">任意</span></label>
+                <div class="flex gap-2">
+                    <div style="flex:1;">
+                        <input type="text" id="profile-name-last" class="input" placeholder="氏 (例：山田)" oninput="validateProfileName()">
+                        <div id="error-profile-name-last" class="text-xs mt-1" style="display:none; color:var(--danger); font-weight:700;"></div>
+                    </div>
+                    <div style="flex:1;">
+                        <input type="text" id="profile-name-first" class="input" placeholder="名 (例：太郎)" oninput="validateProfileName()">
+                        <div id="error-profile-name-first" class="text-xs mt-1" style="display:none; color:var(--danger); font-weight:700;"></div>
+                    </div>
+                </div>
+                <div class="text-xs text-sub mt-1">※各10文字以内</div>
+            </div>
+
+            <div class="input-group mb-12">
+                <label class="label">クリエイターネーム (表示名) <span class="optional-tag">任意</span></label>
+                <input type="text" id="creator-name" class="input" placeholder="例：TaroCreative" oninput="validateCreatorName()">
+                <div class="text-xs text-sub mt-1">※20文字以内</div>
+                <div id="error-creator-name" class="text-xs mt-1" style="display:none; color:var(--danger); font-weight:700;"></div>
+            </div>
+
+            <button class="btn btn-primary btn-next" id="btn-step1-next" onclick="goToStep('step-2')">次へ進む</button>
+        </div>
+
+        <!-- Step 2: Icon Upload (Optional) -->
+        <div id="step-2" class="onboarding-step p-6">
+            <div class="step-indicator"><div class="step-dot active"></div><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+            <h2 class="mb-2">プロフィールの画像</h2>
+            <p class="text-sub mb-6">自分のアイコンとして表示される画像を選択してください。</p>
+
+            <div class="flex flex-col items-center gap-6 mb-10">
+                <div style="position: relative;">
+                    <img id="preview-icon" src="images/avatar.png" style="width: 120px; height: 120px; border-radius: 50%; object-fit:cover; background:#E5E5EA;">
+                    <button class="btn-ghost" style="position: absolute; bottom: 0; right: 0; background: var(--primary-color); color: white; border-radius: 50%; width: 36px; height: 36px; padding: 0; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="document.getElementById('icon-file').click()">📸</button>
+                </div>
+                <input type="file" id="icon-file" style="display:none;" onchange="previewImage(this, 'preview-icon')">
+                <div class="text-left" style="background:#f9f9f9; padding: 16px; border-radius:12px; border:1px solid var(--border-color); width:100%; box-sizing: border-box;">
+                    <p class="text-xs font-black mb-2" style="color:var(--text-main);">📸 アイコン画像の推奨設定</p>
+                    <p class="text-xs text-sub leading-relaxed" style="margin-bottom:4px;">・推奨サイズ: 320×320px 以上の正方形 (1:1)</p>
+                    <p class="text-xs text-sub leading-relaxed" style="margin-bottom:4px;">・ファイル容量: 8MB以内 (JPGまたはPNG)</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button class="btn btn-primary w-full" onclick="goToStep('step-3')">次へ進む</button>
+                <button class="btn btn-outline w-full" onclick="goToStep('step-1')">戻る</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Plan Selection -->
+        <div id="step-3" class="onboarding-step p-6">
+            <div class="step-indicator"><div class="step-dot active"></div><div class="step-dot active"></div><div class="step-dot active"></div><div class="step-dot"></div></div>
+            <h2 class="mb-2">利用プランのご選択</h2>
+            <p class="text-sub mb-6 text-xs font-black">MYアルバムを快適にご利用いただくためのプランを選択してください。</p>
+
+            <div class="plan-cards mb-6 flex flex-col gap-4">
+                <!-- Basic -->
+                <label id="plan-basic" class="plan-card p-4 cursor-pointer transition-all" style="position:relative; z-index:1; border:1px solid #e2e8f0; border-radius:12px; display:block; padding: 20px 16px; background:#fff; transform:scale(1); box-shadow:none;" tabindex="0" onclick="selectPlan('basic', 600, 'ベーシック_0.5TB/年')">
+                    <div class="flex justify-between items-center mb-2">
+                        <span style="font-size: 15px; font-weight: 900; color: #4A5568;">ベーシック</span>
+                        <span style="font-size: 20px; font-weight: 900; color: #1a202c;">¥600<span style="font-size: 12px; color: #718096;"> / 月</span></span>
+                    </div>
+                    <div class="text-xs font-bold" style="color: #635BFF; display:flex; align-items:center; gap:4px;"><span style="font-size:14px;">☁️</span> 年間データ転送量上限: 0.5TB</div>
+                </label>
+                <!-- Standard -->
+                <label id="plan-standard" class="plan-card p-4 cursor-pointer transition-all" style="position:relative; z-index:10; background:#FFF0F5; border: 2px solid var(--primary-color); border-radius:12px; display:block; padding: 20px 16px; transform:scale(1.02); box-shadow:0 8px 16px rgba(255,107,0,0.15);" tabindex="0" onclick="selectPlan('standard', 900, 'スタンダード_1TB/年')">
+                    <div style="position:absolute; top:-12px; right:16px; background:linear-gradient(135deg, var(--primary-color), #FF4500); color:white; font-size:11px; font-weight:900; padding:4px 12px; border-radius:20px; box-shadow:0 4px 8px rgba(255,107,0,0.3); letter-spacing:0.5px; border: 1px solid rgba(255,255,255,0.5);">⭐ おすすめ</div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span style="font-size: 16px; font-weight: 900; color: var(--primary-color);">スタンダード</span>
+                        <span style="font-size: 24px; font-weight: 900; color: var(--text-main);">¥900<span style="font-size: 12px; color: var(--text-sub);"> / 月</span></span>
+                    </div>
+                    <div class="text-xs font-bold" style="color: var(--primary-color); display:flex; align-items:center; gap:4px;"><span style="font-size:14px;">☁️</span> 年間データ転送量上限: 1TB</div>
+                </label>
+                <!-- Premium -->
+                <label id="plan-premium" class="plan-card p-4 cursor-pointer transition-all" style="position:relative; z-index:1; border:1px solid #e2e8f0; border-radius:12px; display:block; padding: 20px 16px; background:#fff; transform:scale(1); box-shadow:none;" tabindex="0" onclick="selectPlan('premium', 1500, 'プレミアム_2TB/年')">
+                    <div class="flex justify-between items-center mb-2">
+                        <span style="font-size: 15px; font-weight: 900; color: #D69E2E;">プレミアム</span>
+                        <span style="font-size: 20px; font-weight: 900; color: #1a202c;">¥1,500<span style="font-size: 12px; color: #718096;"> / 月</span></span>
+                    </div>
+                    <div class="text-xs font-bold" style="color: #D69E2E; display:flex; align-items:center; gap:4px;"><span style="font-size:14px;">☁️</span> 年間データ転送量上限: 2TB</div>
+                </label>
+            </div>
+
+            <div class="mb-8 p-4 rounded-xl" style="background:#f7fafc; border:1px solid #e2e8f0;">
+                <p style="font-size:12px; font-weight:800; color:#2d3748; margin-bottom:12px;">💡 データ転送量についての大切なお知らせ</p>
+                <ul style="font-size:11px; color:#4a5568; line-height:1.6; padding-left:16px; margin:0;" class="list-disc">
+                    <li style="margin-bottom:6px;">データ転送料とは、アルバムへのアップロードやファンによるコンテンツ視聴等で発生する通信量（上り・下りのデータ送信量）です。</li>
+                    <li style="margin-bottom:6px;">万が一、年間の転送量上限を超過した場合でも、オプションで追加チャージが可能です。</li>
+                    <li style="margin-bottom:6px;">上限超過後に追加購入を行わなくても、<strong>1年間は大切なデータを安全に保持</strong>します（期間中のデータ引き出しも適宜可能です）。</li>
+                    <li><span style="color:#E53E3E; font-weight:800;">※ 超過後、1年間一度も追加チャージ等が行われず放置された場合、データは消滅しますのであらかじめご注意ください。</span></li>
+                </ul>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button class="btn btn-primary w-full" onclick="confirmPlan()">プランを決定して次へ</button>
+                <button class="btn btn-outline w-full" onclick="goToStep('step-2')">戻る</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Subscription Billing -->
+        <div id="step-4" class="onboarding-step p-6">
+            <div class="step-indicator"><div class="step-dot active"></div><div class="step-dot active"></div><div class="step-dot active"></div><div class="step-dot active"></div></div>
+            <h2 class="mb-2">決済情報のご入力</h2>
+            <p class="text-sub mb-6 text-xs font-black">選択したプランの決済情報を登録してください。</p>
+
+            <div class="p-6 mb-8 text-center" style="background: linear-gradient(135deg, #FFF0F5, #FFE4E1); border: 2px solid #FFB6C1; border-radius: 20px; box-shadow: 0 8px 24px rgba(255, 51, 102, 0.15);">
+                <p id="display-plan-name" style="font-size: 14px; font-weight: 900; color: #FF3366; margin-bottom: 8px;">スタンダードプラン</p>
+                <p id="display-plan-price" style="font-size: 32px; font-weight: 900; color: var(--text-main); margin-bottom: 4px;">¥900 <span style="font-size: 14px; color: var(--text-sub);">/ 月</span></p>
+                <p id="display-plan-desc" style="font-size: 11px; color: var(--text-sub); font-weight: 700;">データ転送上限: 1TB / 年</p>
+                <p style="font-size: 10px; color: #8e8e93; font-weight: 700; margin-top:8px;">※ いつでも解約可能です</p>
+            </div>
+            
+            <div id="stripe-error-banner" style="display:none; background: #FFF0F0; border: 1px solid #FFCDD2; border-radius: 12px; text-align: center; padding:16px; margin-bottom:24px;">
+                <p style="font-size: 13px; font-weight: 800; color: var(--danger); margin-bottom: 8px;">決済に失敗しました</p>
+                <p style="font-size: 11px; color: var(--text-sub); font-weight: 700; line-height: 1.5; margin-bottom: 12px;">クレジットカード情報をご確認ください。どうしても解決しない場合はそのまま続行し、後ほどマイページからご登録いただけます。</p>
+                <button class="btn btn-outline w-full" style="padding: 12px; font-size: 12px; color: var(--text-main);" onclick="window.location.href='home.html'">後で決済情報を登録して進む</button>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button class="btn btn-primary w-full" style="background: #635BFF; box-shadow: 0 4px 15px rgba(99, 91, 255, 0.3); border:none;" onclick="simulateStripeCheckout()">クレジットカード画面を開く</button>
+                <p class="text-center text-xs text-sub mb-2">※ Stripeの安全な決済ページへ遷移します</p>
+                <button class="btn btn-outline w-full" onclick="goToStep('step-3')">戻る</button>
+            </div>
+        </div>
+
+        <!-- Mock Stripe Checkout Modal -->
+        <div class="modal-overlay" id="mockStripeModal">
+            <div class="modal-sheet" style="padding: 24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+                    <div style="font-size:24px; font-weight:900; color:#635BFF; letter-spacing:-1px;">stripe</div>
+                    <div style="font-size:14px; color:#a0aec0; cursor:pointer; font-weight:800;" onclick="document.getElementById('mockStripeModal').classList.remove('active')">キャンセル</div>
+                </div>
+
+                <div style="margin-bottom:24px;">
+                    <p id="mock-plan-name" style="color:var(--text-sub); font-size:14px; font-weight:800; margin-bottom:4px;">MYアルバム スタンダードプラン</p>
+                    <p id="mock-plan-price" style="font-size:32px; font-weight:900; color:#1a202c; letter-spacing:-1px;">¥900<span style="font-size:16px; color:#718096; font-weight:800;"> / 月</span></p>
+                </div>
+                
+                <div style="margin-bottom:16px;">
+                    <label style="font-size:13px; font-weight:800; color:#4a5568; margin-bottom:8px; display:block;">連絡先情報</label>
+                    <input type="email" placeholder="メールアドレス" style="width:100%; padding:14px; border:1px solid #e2e8f0; border-radius:8px; font-size:15px; margin-bottom:16px; outline:none; box-sizing:border-box;">
+                </div>
+
+                <div style="margin-bottom:24px;">
+                    <label style="font-size:13px; font-weight:800; color:#4a5568; margin-bottom:8px; display:block;">カード情報</label>
+                    <div style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+                        <input type="tel" id="stripe-card-num" placeholder="カード番号" style="width:100%; padding:14px; border:none; border-bottom:1px solid #e2e8f0; font-size:15px; outline:none; box-sizing:border-box;" oninput="formatCardNumber(this)" maxlength="19">
+                        <div style="display:flex;">
+                            <input type="tel" placeholder="MM / YY" style="width:50%; padding:14px; border:none; border-right:1px solid #e2e8f0; font-size:15px; outline:none; box-sizing:border-box;" maxlength="5">
+                            <input type="tel" placeholder="CVC" style="width:50%; padding:14px; border:none; font-size:15px; outline:none; box-sizing:border-box;" maxlength="4">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:24px;">
+                    <label style="font-size:13px; font-weight:800; color:#4a5568; margin-bottom:8px; display:block;">カード名義人</label>
+                    <input type="text" placeholder="TARO YAMADA" style="width:100%; padding:14px; border:1px solid #e2e8f0; border-radius:8px; font-size:15px; outline:none; box-sizing:border-box;">
+                </div>
+
+                <button id="stripe-pay-btn" style="width:100%; padding:16px; border-radius:8px; background:#635BFF; color:white; font-size:16px; font-weight:800; border:none; cursor:pointer; box-shadow:0 4px 12px rgba(99,91,255,0.2); transition:0.2s; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="executeMockStripePayment()">定期購入を申し込む</button>
+                
+                <p style="text-align:center; font-size:11px; color:#a0aec0; margin-top:24px; font-weight:700;">※ これは外部決済ページ（モック）のデモ画面です</p>
+                <p style="text-align:center; margin-top:12px;"><span style="color:#E53E3E; font-size:10px; font-weight:800; cursor:pointer; background:#FFF5F5; padding:4px 8px; border-radius:4px;" onclick="executeMockStripePayment(true)">[デモ用: 決済失敗アクションをテストする]</span></p>
+            </div>
+        </div>
+
+    </div>
+    <script>
+        function goToStep(stepId) {
+            document.querySelectorAll('.onboarding-step').forEach(el => el.classList.remove('active'));
+            document.getElementById(stepId).classList.add('active');
+        }
+
+        function validateProfileName() {
+            const last = document.getElementById('profile-name-last');
+            const first = document.getElementById('profile-name-first');
+            const errorLast = document.getElementById('error-profile-name-last');
+            const errorFirst = document.getElementById('error-profile-name-first');
+            
+            if (last.value.length > 10) {
+                errorLast.innerText = '10文字以内で入力してください。';
+                errorLast.style.display = 'block';
+                last.style.borderColor = 'var(--danger)';
+            } else {
+                errorLast.style.display = 'none';
+                last.style.borderColor = '';
+            }
+
+            if (first.value.length > 10) {
+                errorFirst.innerText = '10文字以内で入力してください。';
+                errorFirst.style.display = 'block';
+                first.style.borderColor = 'var(--danger)';
+            } else {
+                errorFirst.style.display = 'none';
+                first.style.borderColor = '';
+            }
+            checkStep1();
+        }
+
+        function validateCreatorName() {
+            const input = document.getElementById('creator-name');
+            const error = document.getElementById('error-creator-name');
+            if (input.value.length > 20) {
+                error.innerText = '20文字以内で入力してください。';
+                error.style.display = 'block';
+                input.style.borderColor = 'var(--danger)';
+            } else {
+                error.style.display = 'none';
+                input.style.borderColor = '';
+            }
+            checkStep1();
+        }
+
+        function checkStep1() {
+            const errors = document.querySelectorAll('#step-1 [id^="error-"][style*="display: block"]');
+            const nextBtn = document.getElementById('btn-step1-next');
+            
+            if (errors.length > 0) {
+                nextBtn.style.opacity = '0.5';
+                nextBtn.style.pointerEvents = 'none';
+            } else {
+                nextBtn.style.opacity = '1';
+                nextBtn.style.pointerEvents = 'auto';
+            }
+        }
+
+        function previewImage(input, previewId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(previewId).src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Plan Selection Logic
+        let currentPlanName = 'スタンダード';
+        let currentPlanPrice = 900;
+        let currentPlanDesc = '1TB/年';
+
+        function selectPlan(id, price, descRaw) {
+            document.querySelectorAll('.plan-card').forEach(card => {
+                card.style.border = '1px solid #e2e8f0';
+                card.style.background = '#fff';
+                card.style.transform = 'scale(1)';
+                card.style.boxShadow = 'none';
+                card.style.zIndex = '1';
+            });
+            const el = document.getElementById('plan-' + id);
+            el.style.border = '2px solid var(--primary-color)';
+            el.style.background = '#FFF0F5';
+            el.style.transform = 'scale(1.02)';
+            el.style.boxShadow = '0 8px 16px rgba(255,107,0,0.15)';
+            el.style.zIndex = '10';
+            
+            const descParts = descRaw.split('_');
+            currentPlanName = descParts[0];
+            currentPlanDesc = descParts[1];
+            currentPlanPrice = price;
+        }
+
+        function confirmPlan() {
+            document.getElementById('display-plan-name').innerText = currentPlanName + 'プラン';
+            document.getElementById('display-plan-price').innerHTML = `¥${currentPlanPrice.toLocaleString()} <span style="font-size: 14px; color: var(--text-sub);">/ 月</span>`;
+            document.getElementById('display-plan-desc').innerText = `年間データ転送量上限: ${currentPlanDesc}`;
+
+            document.getElementById('mock-plan-name').innerText = 'MYアルバム ' + currentPlanName + 'プラン';
+            document.getElementById('mock-plan-price').innerHTML = `¥${currentPlanPrice.toLocaleString()}<span style="font-size:16px; color:#718096; font-weight:800;"> / 月</span>`;
+            
+            goToStep('step-4');
+        }
+
+        // Stripe Checkout Logic
+        function simulateStripeCheckout() {
+            const modal = document.getElementById('mockStripeModal');
+            modal.style.visibility = 'visible';
+            modal.style.opacity = '1';
+            modal.classList.add('active');
+        }
+
+        function handleStripeResult(success) {
+            document.getElementById('mockStripeModal').classList.remove('active');
+            setTimeout(() => {
+                const modal = document.getElementById('mockStripeModal');
+                modal.style.visibility = 'hidden';
+                modal.style.opacity = '0';
+                
+                if (success) {
+                    window.location.href = 'home.html';
+                } else {
+                    const errorBanner = document.getElementById('stripe-error-banner');
+                    errorBanner.style.display = 'block';
+                    errorBanner.classList.add('anim-fade');
+                }
+            }, 400);
+        }
+
+        function formatCardNumber(input) {
+            let val = input.value.replace(/\D/g, '');
+            let formatted = '';
+            for (let i = 0; i < val.length; i++) {
+                if (i > 0 && i % 4 === 0) formatted += ' ';
+                formatted += val[i];
+            }
+            input.value = formatted.substring(0, 19);
+        }
+
+        function executeMockStripePayment(forceFail = false) {
+            const btn = document.getElementById('stripe-pay-btn');
+            
+            if(!forceFail) {
+                const cardNum = document.getElementById('stripe-card-num').value.replace(/\s/g, '');
+                if(cardNum.length > 0 && cardNum.length < 14) {
+                    btn.style.transform = 'translateX(-5px)';
+                    setTimeout(() => btn.style.transform = 'translateX(5px)', 50);
+                    setTimeout(() => btn.style.transform = 'translateX(-5px)', 100);
+                    setTimeout(() => btn.style.transform = 'translateX(0)', 150);
+                    alert("正しいカード番号を入力してください");
+                    return;
+                }
+            }
+
+            btn.innerHTML = '<span style="display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-radius:50%; border-top-color:transparent; animation:spin 0.8s linear infinite;"></span>処理中...';
+            btn.style.opacity = '0.8';
+            btn.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                btn.innerHTML = '定期購入を申し込む';
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+                
+                if(forceFail) {
+                    handleStripeResult(false);
+                } else {
+                    handleStripeResult(true);
+                }
+            }, 1200);
+        }
+    </script>
+    <script>
+        function changeLang(lang) {
+            // Update UI styles
+            document.getElementById('lang-ja').style.background = lang === 'ja' ? 'white' : 'transparent';
+            document.getElementById('lang-ja').style.boxShadow = lang === 'ja' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none';
+            document.getElementById('lang-ja').style.color = lang === 'ja' ? 'var(--text-main)' : 'var(--text-sub)';
+            
+            document.getElementById('lang-en').style.background = lang === 'en' ? 'white' : 'transparent';
+            document.getElementById('lang-en').style.boxShadow = lang === 'en' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none';
+            document.getElementById('lang-en').style.color = lang === 'en' ? 'var(--text-main)' : 'var(--text-sub)';
+
+            // Call i18n logic function
+            if(window.setLanguage) {
+                window.setLanguage(lang);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('myalbum_lang') || 'ja';
+            changeLang(savedLang);
+        });
+    </script>
+    <script src="app.js"></script>
+<script src="i18n.js"></script>
+</body>
+</html>

@@ -1,0 +1,476 @@
+﻿${count}件をZIPにまとめています...
+${event.target.files.length} 個のファイルを選択済
+&gt;&gt;&gt;もっと見る
+/ 月
+// 共有機能モック function shareApp(platform) { const url = platform === 'win' ? 'https://myalbum.example.com/download/mystorage_win.exe' : 'https://myalbum.example.com/download/mystorage_mac.dmg'; if (navigator.share) { navigator.share({ title: `MYストレージ (${platform.toUpperCase()}版)`, text: '大容量ファイル保存用PCクライアント', url: url }).catch(err => { copyToClipboard(url); }); } else { copyToClipboard(url); } } // クリップボードコピー function copyToClipboard(text) { if(navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(() => { showToast('URLをコピーしました'); }).catch(err => { showToast('コピーに失敗しました'); }); } else { showToast('URLをコピーしました (Mock)'); } } // トースト通知 function showToast(msg) { const toast = document.getElementById('toast'); toast.innerText = msg; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }
+:root { --nav-height: 80px; } * { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background-color: var(--bg-color); color: var(--text-main); padding-bottom: calc(var(--nav-height) + 120px); -webkit-tap-highlight-color: transparent;} .app-container { max-width: 430px; margin: 0 auto; background: var(--bg-color); position: relative; min-height: 100vh;} .dash-header { padding: 16px; position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 50; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;} /* Archive Card Style */ .archive-card { background: #FFF; border-radius: 20px; border: 1px solid var(--border-color); margin-bottom: 20px; overflow: hidden; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.05); } .ac-header { padding: 12px 16px; border-bottom: 1px solid rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; } .ac-platform { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; color: var(--text-sub); } .ac-platform img { width: 14px; height: 14px; object-fit: contain; } .ac-main { display: flex; padding: 16px 16px 8px; gap: 16px; align-items: flex-start; } .ac-info { flex: 1; min-width: 0; } .ac-title { font-size: 15px; font-weight: 900; line-height: 1.4; margin-bottom: 4px; color: var(--text-main); } .ac-date { font-size: 11px; color: var(--text-sub); font-weight: 700; } /* Content Type Badge */ .thumb-wrap { position: relative; width: 80px; height: 80px; flex-shrink: 0; } .type-badge { position: absolute; bottom: 4px; left: 4px; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 900; color: #FFF; display: flex; align-items: center; gap: 2px; } .type-badge.video { background: #FF3B30; } .type-badge.image { background: #007AFF; } /* Version Section Refined */ .ac-version-sec { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 16px; } .v-row { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: #FFF; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 2px 10px rgba(0,0,0,0.03); position: relative; } .v-row:active { background: #FAFAFA; } .v-name { font-size: 13px; font-weight: 900; color: var(--text-main); } .v-time { font-size: 10px; color: var(--text-sub); font-weight: 700; margin-top: 2px; } .v-info-wrap { flex: 1; } /* 2x Thumbnail size (Original is 80x80, so 2x is 160px width) */ .v-thumb-edit { width: 100%; height: 120px; border-radius: 12px; object-fit: cover; background: #EEE; border: 1px solid rgba(0,0,0,0.05); } .v-footer-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; } .v-btn-group { display:flex; align-items:center; gap:8px; } .v-action-btn { background: var(--bg-color); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 800; color: var(--text-main); cursor: pointer; transition: 0.2s; } .v-action-btn:active { transform: scale(0.95); } .v-action-btn.primary { background: var(--primary-light); color: var(--primary-color); border-color: var(--primary-color); } .v-add-btn { width: 100%; border: 1.5px dashed #DDD; background: transparent; padding: 12px; border-radius: 16px; font-size: 13px; font-weight: 800; color: var(--text-sub); cursor: pointer; transition: 0.2s; } .v-add-btn:hover { background: rgba(0,0,0,0.02); border-color: #CCC; } /* Original Link in Header Area */ .original-btn-wrap { display: flex; align-items: center; gap: 8px; margin-top: 8px; } .btn-orig { font-size: 11px; font-weight: 900; color: var(--primary-color); background: var(--primary-light); padding: 4px 12px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; } /* Checkbox Style */ .check-wrap { position: relative; width: 22px; height: 22px; flex-shrink: 0; display: none; } .check-wrap.active { display: block; } .custom-check { width: 100%; height: 100%; border: 2.5px solid var(--border-color); border-radius: 6px; cursor: pointer; appearance: none; position: relative; transition: 0.2s; background: #FFF; outline: none;} .custom-check:checked { background: var(--primary-color); border-color: var(--primary-color); } .custom-check:checked::after { content: '✓'; color: #FFF; position: absolute; font-size: 12px; font-weight: 900; top: 50%; left: 50%; transform: translate(-50%, -50%); } .v-item .v-check { position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; z-index: 5; display: none; } .v-item .v-check.active { display: block; } .v-item .custom-check { border-width: 2px; border-radius: 4px; } .v-item .custom-check:checked::after { font-size: 10px; } /* Bulk Action Bar */ .bulk-bar { position: fixed; bottom: calc(var(--nav-height) + 16px); left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 398px; background: rgba(34,34,34,0.9); backdrop-filter: blur(20px); border-radius: 20px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 150; box-shadow: 0 12px 40px rgba(0,0,0,0.4); visibility: hidden; opacity: 0; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translate(-50%, 40px); border: 1px solid rgba(255,255,255,0.1); } .bulk-bar.show { visibility: visible; opacity: 1; transform: translate(-50%, 0); } .bulk-count { color: #FFF; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 6px; } .bulk-count span { color: var(--primary-color); font-size: 18px; } .bulk-btn-row { display: flex; gap: 10px; } .bulk-btn { border: none; padding: 12px 18px; border-radius: 12px; font-size: 11px; font-weight: 900; cursor: pointer; font-family: inherit; transition: 0.2s; position: relative; overflow: hidden; } .bulk-btn:active { transform: scale(0.95); } .btn-zip { background: linear-gradient(135deg, #FF6B00, #FF8A00); color: #FFF; } .btn-storage { background: rgba(255,255,255,0.1); color: #FFF; border: 1px solid rgba(255,255,255,0.2); } .select-toggle { font-size: 13px; font-weight: 800; color: #FFF; background: var(--text-main); border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); } .select-toggle.active { background: #EEE; color: #666; } .all-select-btn { font-size: 12px; font-weight: 800; color: var(--primary-color); cursor: pointer; display: none; margin-top: 8px; align-self: flex-end;} .all-select-btn.show { display: block; } /* Bottom Nav */ .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); height: var(--nav-height); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0px); } .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); text-decoration: none; font-size: 10px; font-weight: 700; gap: 4px; } .nav-item.active { color: var(--primary-color); } .nav-item svg { width: 24px; height: 24px; fill: currentColor; } .nav-fab { background-color: var(--primary-color); color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -30px; box-shadow: 0 4px 12px rgba(255,107,0,0.3); font-size: 32px; line-height: 1; text-decoration: none; border: 4px solid var(--bg-color); } .toast { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #FFF; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 800; z-index: 200; opacity: 0; visibility: hidden; transition: 0.3s; } .toast.show { opacity: 1; visibility: visible; }
+'; } function checkout() { alert("DMC PAY の決済確認画面へ移動します（プロトタイプ）"); setTimeout(() => { location.href = "payment.html"; }, 500); }
+'; btn.style.pointerEvents = 'none'; btn.style.opacity = '0.7'; setTimeout(() => { btn.classList.add('archived'); btn.style.opacity = '1'; btn.innerHTML = '✓ アーカイブ済'; }, 1000); } function handleAlbumChange(val) { if(val === 'CREATE_NEW') { location.href = 'album_create.html'; } else { localStorage.setItem('selectedCurrentAlbum', val); } } function filterByDate(filterType, btn) { document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); const now = new Date(); const formatDate = (d) => `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`; let targetDate = ''; if (filterType === 'today') targetDate = formatDate(now); else if (filterType === 'yesterday') targetDate = formatDate(new Date(now.getTime() - 86400000)); else if (filterType === 'dayBefore') targetDate = formatDate(new Date(now.getTime() - 86400000 * 2)); document.querySelectorAll('.feed-sec').forEach(sec => { let hasVisible = false; const items = sec.querySelectorAll('.feed-item'); items.forEach(item => { if (filterType === 'all') { item.style.display = 'flex'; hasVisible = true; } else { const dateEl = item.querySelector('.fi-date'); if (dateEl && dateEl.innerText.startsWith(targetDate)) { item.style.display = 'flex'; hasVisible = true; } else { item.style.display = 'none'; } } }); sec.style.display = hasVisible ? 'block' : 'none'; }); } // Initially randomize some archive buttons and setup dummy dates precisely for filter test document.addEventListener('DOMContentLoaded', () => { const archiveBtns = document.querySelectorAll('.btn-archive'); archiveBtns.forEach(btn => { if(Math.random() > 0.6) { btn.classList.add('archived'); btn.innerHTML = '✓ アーカイブ済'; } }); const now = new Date(); const formatDate = (d) => `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`; const todayStr = formatDate(now); const yesterdayStr = formatDate(new Date(now.getTime() - 86400000)); const dayBeforeStr = formatDate(new Date(now.getTime() - 86400000 * 2)); document.querySelectorAll('.feed-sec').forEach(sec => { const items = sec.querySelectorAll('.fi-date'); if(items[0]) { items[0].innerHTML = `${todayStr} 12:00
+[アイドル/アーティスト]
+[デモ用: 決済失敗アクションをテストする]
+[管理画面]
+[蒼くみ] 【Vlog】休日の過ごし方・完全プライベート密着
+[蒼くみ] 【神企画】メンバー全員でドッキリ仕掛けてみた！
+[蒼くみ] 【踊ってみた】最新曲のサビだけ本気ダンス
+[蒼くみ] お気に入りカフェでの一枚
+[蒼くみ] メイク中のオフショット💄 リクエスト募集中！
+[蒼くみ] ライブ後のハイテンションでご挨拶！✨
+[蒼くみ] レッスン終わりのクタクタトーク
+[蒼くみ] 🌟ゲリラ配信！みんなでお話しよう🌟
+[蒼くみ] 🌟夜のまったりカラオケ配信🌟パート2
+[蒼くみ] 今流行りの音源で踊ってみた🎵 #蒼くみ
+[蒼くみ] 昨年の夏ライブ、奇跡の瞬間
+[蒼くみ] 新作衣装のフィッティング風景
+[蒼くみ] 秘蔵！ファンミの裏側大公開！
+`; } } // Upload Simulation (Single) function simulateUpload() { if(isUploading) return; isUploading = true; const dropArea = document.getElementById('drop-area'); const statusArea = document.getElementById('upload-status-area'); const bulkArea = document.getElementById('bulk-upload-area'); const resultArea = document.getElementById('upload-result-area'); const btnDoUpload = document.getElementById('btn-do-upload'); const fill = document.getElementById('upload-progress-fill'); const percentDiv = document.getElementById('upload-percent'); fill.style.width = '0%'; percentDiv.innerText = '0%'; resultArea.classList.add('hidden'); if(bulkArea) bulkArea.classList.add('hidden'); dropArea.style.display = 'none'; statusArea.classList.remove('hidden'); btnDoUpload.innerText = 'アップロード中...'; btnDoUpload.classList.add('opacity-50', 'pointer-events-none'); let progress = 0; const interval = setInterval(() => { progress += Math.random() * 15; if(progress > 100) progress = 100; fill.style.width = `${progress}%`; percentDiv.innerText = `${Math.floor(progress)}%`; if(progress === 100) { clearInterval(interval); setTimeout(() => { statusArea.classList.add('hidden'); resultArea.classList.remove('hidden'); btnDoUpload.innerText = '別のファイルをアップロードする'; btnDoUpload.classList.remove('opacity-50', 'pointer-events-none'); btnDoUpload.onclick = resetUploadFlow; isUploading = false; }, 500); } }, 300); } // Bulk Upload Simulation (Demo) function simulateUploadBulk() { if(isUploading) return; isUploading = true; const dropArea = document.getElementById('drop-area'); const singleStatus = document.getElementById('upload-status-area'); const bulkStatus = document.getElementById('bulk-upload-area'); const resultArea = document.getElementById('upload-result-area'); const btnDoUpload = document.getElementById('btn-do-upload'); singleStatus.classList.add('hidden'); resultArea.classList.add('hidden'); dropArea.style.display = 'none'; bulkStatus.classList.remove('hidden'); const fileList = document.getElementById('bulk-file-list'); const overallPercent = document.getElementById('bulk-overall-percent'); const overallFill = document.getElementById('bulk-overall-fill'); // mock files const files = [ { name: 'TokyoLive_Cam1.mov', size: '12.4 GB', success: true }, { name: 'TokyoLive_Cam2.mov', size: '15.1 GB', success: true }, { name: 'Backstage_Photo.zip', size: '2.5 GB', success: true }, { name: 'Audio_Mix.wav', size: '8.4 GB', success: true }, { name: 'Corrupted_File.mp4', size: '4.1 GB', success: false } ]; let html = ''; files.forEach((f, i) => { html += `
+`; } if(items[1]) { items[1].innerHTML = `${yesterdayStr} 15:30`; } if(items[2]) { items[2].innerHTML = `${dayBeforeStr} 09:15`; } }); // Load albums into header select const select = document.getElementById('headerAlbumSelect'); if(select) { const custom = JSON.parse(localStorage.getItem('myCustomAlbums') || '[]'); custom.forEach(al => { if (al.name === 'テストアルバム') return; // Skip test placeholder const opt = document.createElement('option'); opt.value = al.name; opt.innerText = al.name; select.appendChild(opt); }); const current = localStorage.getItem('selectedCurrentAlbum'); if(current) select.value = current; } });
+`; }); fileList.innerHTML = html; btnDoUpload.innerText = '一括アップロード中...'; btnDoUpload.classList.add('opacity-50', 'pointer-events-none'); let currentFile = 0; let progress = 0; overallFill.style.width = '0%'; overallPercent.innerText = '0%'; const processNext = () => { if(currentFile >= files.length) { // All finished setTimeout(() => { bulkStatus.classList.add('hidden'); resultArea.classList.remove('hidden'); btnDoUpload.innerText = '別のファイルをアップロードする'; btnDoUpload.classList.remove('opacity-50', 'pointer-events-none'); btnDoUpload.onclick = resetUploadFlow; isUploading = false; }, 1000); return; } const file = files[currentFile]; const statusEl = document.getElementById(`file-status-${currentFile}`); statusEl.innerText = 'アップロード中...'; statusEl.className = 'text-[10px] font-bold text-blue-500 whitespace-nowrap'; let fileSim = 0; const interval = setInterval(() => { fileSim += 25; let localProgress = progress + (5 * (fileSim / 100)); if(localProgress > Math.min((currentFile + 1) * 20, 100)) localProgress = Math.min((currentFile + 1) * 20, 100); overallFill.style.width = `${localProgress}%`; overallPercent.innerText = `${Math.floor(localProgress)}%`; if(fileSim >= 100) { clearInterval(interval); progress = (currentFile + 1) * 20; if(file.success) { statusEl.innerText = '完了 ✅'; statusEl.className = 'text-[10px] font-bold text-green-500 whitespace-nowrap'; } else { statusEl.innerText = 'エラー ❌'; statusEl.className = 'text-[10px] font-bold text-red-500 whitespace-nowrap'; } currentFile++; processNext(); } }, 150); }; processNext(); } function resetUploadFlow() { const dropArea = document.getElementById('drop-area'); const resultArea = document.getElementById('upload-result-area'); const btnDoUpload = document.getElementById('btn-do-upload'); const fileInput = document.getElementById('file-input'); const passInput = document.getElementById('upload-password'); dropArea.style.display = 'flex'; dropArea.classList.add('pulse-border'); resultArea.classList.add('hidden'); if(fileInput) fileInput.value = ''; if(passInput) passInput.value = ''; dropArea.innerHTML = `
+`; btnDoUpload.innerText = 'アップロード開始'; btnDoUpload.onclick = simulateUpload; } function copyToClipboard(text) { if(navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(() => { showToast('URLをコピーしました'); }).catch(err => { showToast('コピーに失敗しました'); }); } else { showToast('URLをコピーしました'); } } function showToast(msg) { const toast = document.getElementById('toast'); toast.innerText = msg; toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); } // One-click Send to My Email Logic function sendToMyEmail(filename) { // Mock: send to user's registered email showToast(`登録メールアドレスへダウンロードURLを送信しました`); } // Direct Email Sending from Upload Result function sendDirectEmailFromUpload() { const emailInput = document.getElementById('direct-share-email'); const email = emailInput.value; if(!email || !email.includes('@')) { alert("有効なメールアドレスを入力してください"); return; } showToast(`${email} 宛にダウンロードURLを送信しました！`); emailInput.value = ""; } function filterDownloads() { const query = document.getElementById('search-download').value.toLowerCase(); const items = document.querySelectorAll('.download-item'); items.forEach(item => { const textTokens = [ item.querySelector('.item-filename')?.innerText.toLowerCase() || '', item.querySelector('.item-date')?.innerText.toLowerCase() || '' ].join(' '); if (textTokens.includes(query)) { item.style.display = 'block'; } else { item.style.display = 'none'; } }); } function toggleShareBox(id) { const box = document.getElementById(id); if(box.classList.contains('hidden')) { box.classList.remove('hidden'); } else { box.classList.add('hidden'); } } function shareWithFriend(btn, filename) { const input = btn.previousElementSibling; if(!input.value || !input.value.includes('@')) { alert('有効なメールアドレスを入力してください'); return; } showToast(`${input.value}宛にダウンロードURLを送信しました`); input.value = ''; btn.parentElement.classList.add('hidden'); } function openPlanSelectModal() { const modal = document.getElementById('mockPlanModal'); modal.style.visibility = 'visible'; modal.style.opacity = '1'; modal.classList.add('active'); } function closePlanSelectModal() { const modal = document.getElementById('mockPlanModal'); modal.classList.remove('active'); setTimeout(() => { modal.style.visibility = 'hidden'; modal.style.opacity = '0'; }, 400); } function simulateStripeCheckout() { closePlanSelectModal(); setTimeout(() => { const modal = document.getElementById('mockStripeModal'); modal.style.visibility = 'visible'; modal.style.opacity = '1'; modal.classList.add('active'); }, 300); } function executeMockStripePayment() { const btn = document.getElementById('stripe-pay-btn'); btn.innerHTML = '
+`; document.getElementById('display-plan-desc').innerText = `年間データ転送量上限: ${currentPlanDesc}`; document.getElementById('mock-plan-name').innerText = 'MYアルバム ' + currentPlanName + 'プラン'; document.getElementById('mock-plan-price').innerHTML = `¥${currentPlanPrice.toLocaleString()}
+`; layer.onclick = (e) => { e.stopPropagation(); selectLayer(layer); }; setupDrag(layer); document.getElementById('pArea').appendChild(layer); selectLayer(layer); document.getElementById('newText').value = ""; } function selectLayer(layer) { deselectAllLayers(); activeLayer = layer; layer.classList.add('active'); document.getElementById('textControls').style.display = 'flex'; document.getElementById('textColor').value = rgbToHex(layer.style.color); } function deselectAllLayers() { document.querySelectorAll('.text-layer').forEach(l => l.classList.remove('active')); activeLayer = null; document.getElementById('textControls').style.display = 'none'; } function updateTextStyle() { if (!activeLayer) return; activeLayer.style.color = document.getElementById('textColor').value; activeLayer.style.fontFamily = document.getElementById('fontFamily').value; } function setupDrag(el) { let drg = false, sX, sY, iX, iY; const start = (e) => { drg = true; const p = e.touches ? e.touches[0] : e; sX = p.clientX; sY = p.clientY; iX = el.offsetLeft; iY = el.offsetTop; selectLayer(el); e.stopPropagation(); }; const move = (e) => { if (!drg) return; const p = e.touches ? e.touches[0] : e; el.style.left = (iX + (p.clientX - sX)) + 'px'; el.style.top = (iY + (p.clientY - sY)) + 'px'; }; const end = () => drg = false; el.addEventListener('mousedown', start); el.addEventListener('touchstart', start, {passive:false}); window.addEventListener('mousemove', move); window.addEventListener('touchmove', move, {passive:false}); window.addEventListener('mouseup', end); window.addEventListener('touchend', end); } function rgbToHex(rgb) { if (!rgb || !rgb.startsWith('rgb')) return rgb || '#FFFFFF'; const m = rgb.match(/\d+/g); return "#" + m.slice(0,3).map(x => parseInt(x).toString(16).padStart(2,'0')).join('').toUpperCase(); } function commitChanges(name) { deselectAllLayers(); showToast(`✓ ${name}を適用しました`); } function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); } function finishEdit() { document.getElementById('shareModal').classList.add('show'); } function shareSns(name) { showToast(`${name}へ投稿しました！`); setTimeout(() => location.href='my_albums.html', 1500); } function saveToAlbum() { showToast("MYアルバムに保存しました"); setTimeout(() => location.href='my_albums.html', 1500); }
+`; layer.onclick = (e) => { e.stopPropagation(); selectLayer(layer); }; setupDrag(layer); document.getElementById('pArea').appendChild(layer); selectLayer(layer); document.getElementById('newText').value = ""; } function selectLayer(layer) { deselectAllLayers(); activeLayer = layer; layer.classList.add('active'); document.getElementById('textControls').style.display = 'flex'; document.getElementById('textColor').value = rgbToHex(layer.style.color); document.getElementById('textSize').value = parseInt(layer.style.fontSize); document.getElementById('fontFamily').value = layer.style.fontFamily || "'Noto Sans JP', sans-serif"; document.getElementById('btn-bold').classList.toggle('active', layer.style.fontWeight === '900'); } function deselectAllLayers() { document.querySelectorAll('.text-layer').forEach(l => l.classList.remove('active')); activeLayer = null; document.getElementById('textControls').style.display = 'none'; } function updateTextStyle() { if (!activeLayer) return; activeLayer.style.color = document.getElementById('textColor').value; activeLayer.style.fontSize = document.getElementById('textSize').value + 'px'; activeLayer.style.fontFamily = document.getElementById('fontFamily').value; } function toggleWeight() { if (!activeLayer) return; const isBold = activeLayer.style.fontWeight === '900'; activeLayer.style.fontWeight = isBold ? '400' : '900'; document.getElementById('btn-bold').classList.toggle('active', !isBold); } function setupDrag(el) { let drg = false, sX, sY, iX, iY; const start = (e) => { drg = true; const p = e.touches ? e.touches[0] : e; sX = p.clientX; sY = p.clientY; iX = el.offsetLeft; iY = el.offsetTop; selectLayer(el); e.stopPropagation(); }; const move = (e) => { if (!drg) return; const p = e.touches ? e.touches[0] : e; el.style.left = (iX + (p.clientX - sX)) + 'px'; el.style.top = (iY + (p.clientY - sY)) + 'px'; if(e.cancelable) e.preventDefault(); }; const end = () => drg = false; el.addEventListener('mousedown', start); el.addEventListener('touchstart', start, {passive:false}); window.addEventListener('mousemove', move); window.addEventListener('touchmove', move, {passive:false}); window.addEventListener('mouseup', end); window.addEventListener('touchend', end); } function rgbToHex(rgb) { if (!rgb || !rgb.startsWith('rgb')) return rgb || '#FFFFFF'; const m = rgb.match(/\d+/g); return "#" + m.slice(0,3).map(x => parseInt(x).toString(16).padStart(2,'0')).join('').toUpperCase(); } function commitChanges(name) { deselectAllLayers(); showToast(`✓ ${name}をキャンバスに適用しました`); } function finishEdit() { deselectAllLayers(); document.getElementById('finalPreview').src = document.getElementById('imgPreview').src; document.getElementById('finishModal').style.display = 'flex'; } function postToSNS(platform) { showToast(`${platform}へ投稿しました！`); setTimeout(() => location.href='my_albums.html', 1500); } function saveToAlbum() { showToast("MYアルバムに保存しました"); setTimeout(() => location.href='my_albums.html', 1000); } function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+`; sec.insertBefore(newRow, btn); if(count >= 5) btn.style.display = 'none'; } function toggleSelectionMode() { isSelectionMode = !isSelectionMode; const toggleBtn = document.getElementById('selectToggle'); const allBtn = document.getElementById('allSelectBtn'); const checks = document.querySelectorAll('.check-wrap, .v-check'); if (isSelectionMode) { toggleBtn.innerText = 'キャンセル'; toggleBtn.classList.add('active'); allBtn.classList.add('show'); checks.forEach(c => c.classList.add('active')); showToast('ダウンロード・保存するコンテンツに✓を付けてください'); } else { toggleBtn.innerText = 'ダウンロード・保存'; toggleBtn.classList.remove('active'); allBtn.classList.remove('show'); checks.forEach(c => c.classList.remove('active')); document.querySelectorAll('.custom-check').forEach(ch => ch.checked = false); updateBulkBar(); } } function toggleBoxCheck(boxCheck) { const card = boxCheck.closest('.archive-card'); if(card) { const childChecks = card.querySelectorAll('.v-check .custom-check'); childChecks.forEach(c => c.checked = boxCheck.checked); } updateBulkBar(); } function selectAll() { const checks = document.querySelectorAll('.custom-check'); const allChecked = Array.from(checks).every(c => c.checked); checks.forEach(c => c.checked = !allChecked); updateBulkBar(); document.getElementById('allSelectBtn').innerText = !allChecked ? '選択解除' : 'すべて選択'; } function updateBulkBar() { // Auto Update parent box checkboxes document.querySelectorAll('.archive-card').forEach(card => { const boxCheck = card.querySelector('.box-check'); if(!boxCheck) return; const childChecks = card.querySelectorAll('.v-check .custom-check'); if(childChecks.length > 0) { const allChecked = Array.from(childChecks).every(c => c.checked); boxCheck.checked = allChecked; } }); const checkedCount = document.querySelectorAll('.custom-check:checked:not(.box-check)').length; const bar = document.getElementById('bulkBar'); document.getElementById('selectedCount').innerText = checkedCount; if (checkedCount > 0 && isSelectionMode) bar.classList.add('show'); else bar.classList.remove('show'); } function showToast(msg) { const t = document.getElementById('bulkToast'); t.innerText = msg; t.style.background = 'rgba(0,0,0,0.85)'; t.style.color = '#FFF'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3500); } function doBulkAction(type) { const count = document.querySelectorAll('.custom-check:checked').length; const toast = document.getElementById('bulkToast'); const actionsArea = document.getElementById('bulk-actions'); const successArea = document.getElementById('bulk-success'); if(type === 'ZIP') { toast.innerHTML = `
+{ btn.style.background = '#10B981'; btn.style.boxShadow = '0 4px 16px rgba(16,185,129,0.3)'; btn.style.opacity = '1'; btn.innerText = '申請完了！'; showToast('アーティストへ公認申請を送信しました！'); setTimeout(() => { document.getElementById('review-title').value = ''; document.getElementById('review-file').value = ''; validateReviewForm(); btn.innerText = '申請する'; btn.style.pointerEvents = 'auto'; }, 2000); }, 1500); } function requestArtist(btn) { btn.innerText = '申請中...'; btn.style.pointerEvents = 'none'; btn.style.opacity = '0.5'; setTimeout(() => { btn.innerText = '申請完了'; btn.style.background = '#F1F5F9'; btn.style.color = '#64748B'; btn.style.borderColor = 'transparent'; showToast('アーティストへ申請を完了しました'); }, 800); } let isSelectionMode = false; function addEditVersion(btn, link, thumb) { const sec = btn.parentElement; const rows = sec.querySelectorAll('.v-row:not(.original)'); const count = rows.length + 1; const now = new Date(); const timeStr = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`; const newRow = document.createElement('div'); newRow.className = 'v-row'; newRow.style.animation = 'slideUp 0.3s ease'; newRow.innerHTML = `
+‹
+¥0
+¥1,500
+¥600
+¥900
+「2024 夏フェス 神動画＆写真まとめ」の処理が完了しました。クリックして編集へ進んでください。
+「認証リンク」
+【公認】2026 春のファン祭り！最前列ダイジェスト
++ 編集を追加
++100円
++500円
+≈ ¥186,750 JPY
+⬇️
+■ プロトタイプ用リンク ■
+▶
+▼
+・ファイル容量: 8MB以内 (JPGまたはPNG)
+・推奨サイズ: 320×320px 以上の正方形 (1:1)
+☁️ MYストレージの
+✂️ トリム
+✂️ 切り抜き
+✉️
+✓ 公式 あおいちゃん推し活HUB
+✓公式 あおいちゃん推し活HUB
+✓公式 みどりちゃん応援隊
+✕
+❤️
+✅
+✅ リンクをコピーしました
+✨
+✨ あおいちゃんの推し活HUBよりリコメンド！
+✨ フィルター
+✨ 公認済み
+✨ 神アーカイブ
+•
+•••• •••• •••• 4242
+※ Stripeの安全な決済ページへ遷移します
+※ いつでも解約可能です
+※ これは外部決済ページ（モック）のデモ画面です
+※ 超過後、1年間一度も追加チャージ等が行われず放置された場合、データは消滅しますのであらかじめご注意ください。
+※1ファイルあたりの最大アップロード容量は32GBまでとなります。
+※20文字以内
+※400文字以内
+※アップロード・ダウンロードの合計データ量が転送料金としてカウントされます。
+※デモ：5つのファイルを一括の場合
+※各10文字以内
+※複数ファイルの一括アップロードも可能です
+⚙️
+⭐ 神アーカイブ
+0.8; if(isEmoji) { const emojis = ['🎉', '✨', '🎁', '💖', '💸']; el.innerText = emojis[Math.floor(Math.random()*emojis.length)]; el.style.fontSize = (Math.random()*14 + 16) + 'px'; } else { el.style.width = (Math.random()*8 + 6) + 'px'; el.style.height = (Math.random()*8 + 6) + 'px'; el.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)]; el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px'; } el.style.position = 'fixed'; el.style.left = '50%'; el.style.top = '50%'; el.style.pointerEvents = 'none'; el.style.zIndex = '9999'; el.style.transition = 'all 1.2s cubic-bezier(0.1, 0.8, 0.2, 1)'; el.style.opacity = '1'; el.style.transform = 'translate(-50%, -50%) scale(0.1)'; document.body.appendChild(el); el.getBoundingClientRect(); // reflow const angle = Math.random() * Math.PI * 2; const distance = Math.random() * 250 + 60; const tx = Math.cos(angle) * distance; const ty = Math.sin(angle) * distance; const rot = Math.random() * 720 - 360; el.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rot}deg) scale(1.5)`; el.style.opacity = '0'; setTimeout(() => { if(el.parentNode) el.parentNode.removeChild(el); }, 1200); } } function openTipping(e) { if(e) e.stopPropagation(); document.getElementById('tippingOverlay').classList.add('show'); document.getElementById('amountModal').classList.add('show'); } function closeTippingFlow() { document.getElementById('tippingOverlay').classList.remove('show'); document.getElementById('amountModal').classList.remove('show'); document.getElementById('completePopup').classList.remove('show'); document.getElementById('freeAmount').value = ''; } function selectAmount(amount) { selectedTippingAmount = amount; showDmcPay(); } function submitFreeAmount() { const val = document.getElementById('freeAmount').value; if(val && parseInt(val) > 0) { selectedTippingAmount = parseInt(val); showDmcPay(); } else { alert("金額を正しく入力してください"); } } function showDmcPay() { document.getElementById('amountModal').classList.remove('show'); document.getElementById('tippingOverlay').classList.remove('show'); document.getElementById('dmcAmountText').innerText = selectedTippingAmount.toLocaleString() + '円'; document.getElementById('dmcPayScreen').classList.add('show'); } function closeDmcPay() { document.getElementById('dmcPayScreen').classList.remove('show'); } function processDmcPay() { const btn = document.querySelector('.dmc-pay-btn'); btn.innerText = '決済中...'; btn.style.opacity = '0.7'; btn.disabled = true; setTimeout(() => { btn.innerText = '決済する'; btn.style.opacity = '1'; btn.disabled = false; document.getElementById('dmcPayScreen').classList.remove('show'); document.getElementById('tippingOverlay').classList.add('show'); document.getElementById('completePopup').classList.add('show'); setTimeout(() => { spawnConfetti(); }, 100); }, 1000); }
+0.8; if(isEmoji) { const emojis = ['🎉', '✨', '🎁', '💖', '💸']; el.innerText = emojis[Math.floor(Math.random()*emojis.length)]; el.style.fontSize = (Math.random()*14 + 16) + 'px'; } else { el.style.width = (Math.random()*8 + 6) + 'px'; el.style.height = (Math.random()*8 + 6) + 'px'; el.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)]; el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px'; } el.style.position = 'fixed'; el.style.left = '50%'; el.style.top = '50%'; el.style.pointerEvents = 'none'; el.style.zIndex = '9999'; el.style.transition = 'all 1.2s cubic-bezier(0.1, 0.8, 0.2, 1)'; el.style.opacity = '1'; el.style.transform = 'translate(-50%, -50%) scale(0.1)'; document.body.appendChild(el); el.getBoundingClientRect(); // reflow const angle = Math.random() * Math.PI * 2; const distance = Math.random() * 250 + 60; const tx = Math.cos(angle) * distance; const ty = Math.sin(angle) * distance; const rot = Math.random() * 720 - 360; el.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rot}deg) scale(1.5)`; el.style.opacity = '0'; setTimeout(() => { if(el.parentNode) el.parentNode.removeChild(el); }, 1200); } } function toggleVolume(btn) { btn.classList.toggle('active'); if (btn.classList.contains('active')) { btn.style.animation = 'none'; btn.offsetHeight; btn.style.animation = 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'; if(typeof spawnLikeParticles === 'function') spawnLikeParticles(btn); } const countSpan = btn.querySelector('.count'); if(!countSpan) return; let val = countSpan.innerText; if(val.includes('k')) { let current = parseFloat(val); countSpan.innerText = (btn.classList.contains('active') ? (current + 0.1).toFixed(1) : (current - 0.1).toFixed(1)) + 'k'; } else { let current = parseInt(val); countSpan.innerText = btn.classList.contains('active') ? current + 1 : current - 1; } } function openTipping(e) { if(e) e.stopPropagation(); document.getElementById('tippingOverlay').classList.add('show'); document.getElementById('amountModal').classList.add('show'); } function closeTippingFlow() { document.getElementById('tippingOverlay').classList.remove('show'); document.getElementById('amountModal').classList.remove('show'); document.getElementById('completePopup').classList.remove('show'); document.getElementById('payMethodScreen').classList.remove('show'); document.getElementById('dmcPayScreen').classList.remove('show'); document.getElementById('stripeScreen').classList.remove('show'); document.getElementById('freeAmount').value = ''; } function selectAmount(amount) { selectedTippingAmount = amount; showPayMethod(); } function submitFreeAmount() { const val = document.getElementById('freeAmount').value; if(val && parseInt(val) > 0) { selectedTippingAmount = parseInt(val); showPayMethod(); } else { alert("金額を正しく入力してください"); } } function showPayMethod() { document.getElementById('amountModal').classList.remove('show'); document.getElementById('payMethodScreen').classList.add('show'); } function closePayMethod() { document.getElementById('payMethodScreen').classList.remove('show'); document.getElementById('tippingOverlay').classList.remove('show'); } function showDmcPay() { document.getElementById('payMethodScreen').classList.remove('show'); document.getElementById('dmcAmountText').innerText = selectedTippingAmount.toLocaleString() + '円'; document.getElementById('dmcPayScreen').classList.add('show'); } function closeDmcPay() { document.getElementById('dmcPayScreen').classList.remove('show'); document.getElementById('payMethodScreen').classList.add('show'); } function processDmcPay() { const btn = document.querySelector('.dmc-pay-btn'); btn.innerText = '決済中...'; btn.style.opacity = '0.7'; btn.disabled = true; setTimeout(() => { btn.innerText = '決済する'; btn.style.opacity = '1'; btn.disabled = false; document.getElementById('dmcPayScreen').classList.remove('show'); document.getElementById('tippingOverlay').classList.add('show'); document.getElementById('completePopup').classList.add('show'); setTimeout(() => { spawnConfetti(); }, 100); }, 1000); } function startStripePay() { document.getElementById('payMethodScreen').classList.remove('show'); document.getElementById('tippingOverlay').classList.remove('show'); // stripe is full screen covering document.getElementById('stripeAmountText').innerText = '¥' + selectedTippingAmount.toLocaleString(); document.getElementById('stripeScreen').classList.add('show'); } function closeStripe() { document.getElementById('stripeScreen').classList.remove('show'); document.getElementById('tippingOverlay').classList.add('show'); document.getElementById('payMethodScreen').classList.add('show'); } function processStripePay() { const btn = document.querySelector('.stripe-pay-btn'); btn.innerText = '処理中...'; btn.style.opacity = '0.7'; btn.disabled = true; setTimeout(() => { btn.innerText = '支払う'; btn.style.opacity = '1'; btn.disabled = false; document.getElementById('stripeScreen').classList.remove('show'); document.getElementById('tippingOverlay').classList.add('show'); document.getElementById('completePopup').classList.add('show'); setTimeout(() => { spawnConfetti(); }, 100); }, 1500); }
+0円
+1,000円
+-1,000円
+-1,250円
+1.2K いいね
+10,000円
+10000円
+1000円
+100円
+12回
+1年間は大切なデータを安全に保持
+-200円
+2024 夏フェス 神動画＆写真まとめ
+2026年 2月
+2026年 3月
+20文字以内で入力してください
+24H以内
+300円
+342 コメント
+405回
+48H以内
+5,000円
+5000円
+500円
+50円
+5個のファイルをアップロード中...
+72H以内
+btn.style.transform = 'translateX(5px)', 50); setTimeout(() => btn.style.transform = 'translateX(-5px)', 100); setTimeout(() => btn.style.transform = 'translateX(0)', 150); alert("正しいカード番号を入力してください"); return; } } btn.innerHTML = '
+const contentData = [ { img: 'live.png', type: 'video', time: '02:15', title: '登場シーン 歓喜の瞬間' }, { img: 'summer.png', type: 'photo', time: '', title: '夏フェス特別衣装 全身ショット' }, { img: 'collab.png', type: 'video', time: '05:30', title: '神MC 爆笑トーク集' }, { img: 'twoshot.png', type: 'photo', time: '', title: 'バックステージ オフショット' }, { img: 'hometour.png', type: 'video', time: '01:45', title: 'カメラ目線の神ウインク' }, { img: 'live.png', type: 'video', time: '03:20', title: '定番曲 ラスサビの盛り上がり' }, { img: 'summer.png', type: 'photo', time: '', title: '観客席へのレス ファンサ神対応' }, { img: 'collab.png', type: 'video', time: '10:05', title: 'ゲストコラボ楽曲 フルVer' }, { img: 'twoshot.png', type: 'photo', time: '', title: 'ライブ終了後 集合写真' }, { img: 'hometour.png', type: 'video', time: '04:12', title: 'アンコール 涙のMC' } ]; const listContainer = document.getElementById('contentList'); // Generate 20 items by repeating the 10 data items twice for (let i = 0; i
+const contentData = [ { img: 'twoshot.png', type: 'video', time: '01:30', title: '東京ライブ 神ファンサシーンまとめ' }, { img: 'live.png', type: 'photo', time: '', title: 'ライブ全体 メインビジュアル' }, { img: 'view_tokyolive_list_photo/aoi_01.png', type: 'video', time: '02:15', title: '登場シーン 歓喜の瞬間' }, { img: 'view_tokyolive_list_photo/aoi_02.png', type: 'photo', time: '', title: '特別衣装 全身ショット' }, { img: 'view_tokyolive_list_photo/aoi_03.png', type: 'video', time: '05:30', title: '神MC 爆笑トーク集' }, { img: 'view_tokyolive_list_photo/aoi_04.png', type: 'photo', time: '', title: 'バックステージ オフショット' }, { img: 'view_tokyolive_list_photo/aoi_05.png', type: 'video', time: '01:45', title: 'カメラ目線の神ウインク' }, { img: 'view_tokyolive_list_photo/aoi_06.png', type: 'video', time: '03:20', title: '定番曲 ラスサビの盛り上がり' }, { img: 'view_tokyolive_list_photo/aoi_07.png', type: 'photo', time: '', title: '観客席へのレス ファンサ神対応' }, { img: 'view_tokyolive_list_photo/aoi_08.png', type: 'video', time: '10:05', title: 'ゲストコラボ楽曲 フルVer' }, { img: 'view_tokyolive_list_photo/aoi_09.png', type: 'photo', time: '', title: 'ライブ終了後 集合写真' }, { img: 'view_tokyolive_list_photo/aoi_10.png', type: 'video', time: '04:12', title: 'アンコール 涙のMC' }, { img: 'view_tokyolive_list_photo/aoi_11.png', type: 'video', time: '02:45', title: 'ステージ袖からの隠し撮り' }, { img: 'view_tokyolive_list_photo/aoi_12.png', type: 'photo', time: '', title: 'リハーサル中の真剣な表情' }, { img: 'view_tokyolive_list_photo/aoi_13.png', type: 'video', time: '06:10', title: 'メンバー紹介 パフォーマンス' }, { img: 'view_tokyolive_list_photo/aoi_14.png', type: 'photo', time: '', title: 'サプライズケーキ登場' }, { img: 'view_tokyolive_list_photo/aoi_15.png', type: 'video', time: '03:50', title: 'ソロダンス メドレー' }, { img: 'view_tokyolive_list_photo/aoi_16.png', type: 'video', time: '01:25', title: '投げキッス＆お手振り' }, { img: 'view_tokyolive_list_photo/aoi_17.png', type: 'photo', time: '', title: '円陣 気合い入れシーン' }, { img: 'view_tokyolive_list_photo/aoi_18.png', type: 'video', time: '08:30', title: 'バラード曲 アコースティックVer' }, { img: 'view_tokyolive_list_photo/aoi_19.png', type: 'photo', time: '', title: 'タオルを振り回す全力笑顔' }, { img: 'view_tokyolive_list_photo/aoi_20.png', type: 'video', time: '05:00', title: 'エンディング 全員でジャンプ' } ]; const listContainer = document.getElementById('contentList'); // Generate 22 items for (let i = 0; i
+const contentData = [ { img: 'view_summer_list/aoi_summer_01.png', type: 'video', time: '02:15', title: '登場シーン 歓喜の瞬間' }, { img: 'view_summer_list/aoi_summer_02.png', type: 'photo', time: '', title: '特別衣装 全身ショット' }, { img: 'view_summer_list/aoi_summer_03.png', type: 'video', time: '05:30', title: '神MC 爆笑トーク集' }, { img: 'view_summer_list/aoi_summer_04.png', type: 'photo', time: '', title: 'バックステージ オフショット' }, { img: 'view_summer_list/aoi_summer_05.png', type: 'video', time: '01:45', title: 'カメラ目線の神ウインク' }, { img: 'view_summer_list/aoi_summer_06.png', type: 'video', time: '03:20', title: '定番曲 ラスサビの盛り上がり' }, { img: 'view_summer_list/aoi_summer_07.png', type: 'photo', time: '', title: '観客席へのレス ファンサ神対応' }, { img: 'view_summer_list/aoi_summer_08.png', type: 'video', time: '10:05', title: 'ゲストコラボ楽曲 フルVer' }, { img: 'view_summer_list/aoi_summer_09.png', type: 'photo', time: '', title: 'ライブ終了後 集合写真' }, { img: 'view_summer_list/aoi_summer_10.png', type: 'video', time: '04:12', title: 'アンコール 涙のMC' }, { img: 'view_summer_list/aoi_summer_11.png', type: 'video', time: '02:45', title: 'ステージ袖からの隠し撮り' }, { img: 'view_summer_list/aoi_summer_12.png', type: 'photo', time: '', title: 'リハーサル中の真剣な表情' }, { img: 'view_summer_list/aoi_summer_13.png', type: 'video', time: '06:10', title: 'メンバー紹介 パフォーマンス' }, { img: 'view_summer_list/aoi_summer_14.png', type: 'photo', time: '', title: 'サプライズケーキ登場' }, { img: 'view_summer_list/aoi_summer_15.png', type: 'video', time: '03:50', title: 'ソロダンス メドレー' }, { img: 'view_summer_list/aoi_summer_16.png', type: 'video', time: '01:25', title: '投げキッス＆お手振り' }, { img: 'view_summer_list/aoi_summer_17.png', type: 'photo', time: '', title: '円陣 気合い入れシーン' }, { img: 'view_summer_list/aoi_summer_18.png', type: 'video', time: '08:30', title: 'バラード曲 アコースティックVer' }, { img: 'view_summer_list/aoi_summer_19.png', type: 'photo', time: '', title: 'タオルを振り回す全力笑顔' }, { img: 'view_summer_list/aoi_summer_20.png', type: 'video', time: '05:00', title: 'エンディング 全員でジャンプ' } ]; const listContainer = document.getElementById('contentList'); // Generate 20 items for (let i = 0; i
+DaVinci Resolve マスター
+DMC PAY で購入
+DMC PAY 残高から支払う
+DMC PAYで購入
+DMC PAYに移動
+DMC PAY残高
+DMC PAY取引情報
+DMC PAY取引情報 - MYアルバム
+document.getElementById('mockStripeModal').style.visibility='hidden', 400);">キャンセル
+Facebook でログイン
+function goToStep(stepId) { document.querySelectorAll('.onboarding-step').forEach(el => el.classList.remove('active')); document.getElementById(stepId).classList.add('active'); } function validateProfileName() { const last = document.getElementById('profile-name-last'); const first = document.getElementById('profile-name-first'); const errorLast = document.getElementById('error-profile-name-last'); const errorFirst = document.getElementById('error-profile-name-first'); if (last.value.length > 10) { errorLast.innerText = '10文字以内で入力してください。'; errorLast.style.display = 'block'; last.style.borderColor = 'var(--danger)'; } else { errorLast.style.display = 'none'; last.style.borderColor = ''; } if (first.value.length > 10) { errorFirst.innerText = '10文字以内で入力してください。'; errorFirst.style.display = 'block'; first.style.borderColor = 'var(--danger)'; } else { errorFirst.style.display = 'none'; first.style.borderColor = ''; } checkStep1(); } function validateCreatorName() { const input = document.getElementById('creator-name'); const error = document.getElementById('error-creator-name'); if (input.value.length > 20) { error.innerText = '20文字以内で入力してください。'; error.style.display = 'block'; input.style.borderColor = 'var(--danger)'; } else { error.style.display = 'none'; input.style.borderColor = ''; } checkStep1(); } function checkStep1() { const errors = document.querySelectorAll('#step-1 [id^="error-"][style*="display: block"]'); const nextBtn = document.getElementById('btn-step1-next'); if (errors.length > 0) { nextBtn.style.opacity = '0.5'; nextBtn.style.pointerEvents = 'none'; } else { nextBtn.style.opacity = '1'; nextBtn.style.pointerEvents = 'auto'; } } function previewImage(input, previewId) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { document.getElementById(previewId).src = e.target.result; } reader.readAsDataURL(input.files[0]); } } // Plan Selection Logic let currentPlanName = 'スタンダード'; let currentPlanPrice = 900; let currentPlanDesc = '1TB/年'; function selectPlan(id, price, descRaw) { document.querySelectorAll('.plan-card').forEach(card => { card.style.border = '1px solid #e2e8f0'; card.style.background = '#fff'; }); const el = document.getElementById('plan-' + id); el.style.border = '2px solid var(--primary-color)'; el.style.background = '#FFF0F5'; const descParts = descRaw.split('_'); currentPlanName = descParts[0]; currentPlanDesc = descParts[1]; currentPlanPrice = price; } function confirmPlan() { document.getElementById('display-plan-name').innerText = currentPlanName + 'プラン'; document.getElementById('display-plan-price').innerHTML = `¥${currentPlanPrice.toLocaleString()}
+function switchTab(paneId, el) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); if(el && el.classList) { el.classList.add('active'); // The "private" link is not a real tab, so remove active from main tabs when clicking it } document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active')); document.getElementById('pane-' + paneId).classList.add('active'); } function toggleTree(el) { el.classList.toggle('collapsed'); } function handleAlbumChange(val) { if(val === 'CREATE_NEW') { location.href = 'album_create.html'; } else { localStorage.setItem('selectedCurrentAlbum', val); } } function copyLink() { const t = document.getElementById('copyToast'); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); } function goToUpload() { let sel = document.getElementById('headerAlbumSelect').value; localStorage.setItem('selectedCurrentAlbum', sel !== 'CREATE_NEW' ? sel : 'あおいちゃんの推し活HUB'); location.href = 'album_edit.html'; } window.onload = function() { const select = document.getElementById('headerAlbumSelect'); // Check existing mock albums const custom = JSON.parse(localStorage.getItem('myCustomAlbums') || '[]'); custom.forEach(al => { if (al.name === 'テストアルバム') return; // Skip test placeholder const opt = document.createElement('option'); opt.value = al.name; opt.innerText = al.name; select.insertBefore(opt, select.lastElementChild); }); // Select current const current = localStorage.getItem('selectedCurrentAlbum'); if(current) { select.value = current; } // Check upload pseudo-notification if(localStorage.getItem('pendingNotification') === 'true') { document.getElementById('notif-pop').classList.add('active'); switchTab('shared', document.querySelectorAll('.tab')[1]); document.getElementById('newUploadCard').style.display = 'flex'; localStorage.removeItem('pendingNotification'); } };
+function validateProfile() { let hasError = false; const nameInput = document.getElementById('profile-name'); const nameError = document.getElementById('error-profile-name'); if (nameInput.value.length > 20) { nameError.innerText = '20文字以内で入力してください。'; nameError.style.display = 'block'; nameInput.style.borderColor = '#FF3B30'; hasError = true; } else { nameError.style.display = 'none'; nameInput.style.borderColor = ''; } const cNameInput = document.getElementById('creator-name'); const cNameError = document.getElementById('error-creator-name'); if (cNameInput.value.length > 20) { cNameError.innerText = '20文字以内で入力してください。'; cNameError.style.display = 'block'; cNameInput.style.borderColor = '#FF3B30'; hasError = true; } else { cNameError.style.display = 'none'; cNameInput.style.borderColor = ''; } const bioInput = document.getElementById('profile-bio'); const bioError = document.getElementById('error-profile-bio'); if (bioInput.value.length > 400) { bioError.innerText = '400文字以内で入力してください。'; bioError.style.display = 'block'; bioInput.style.borderColor = '#FF3B30'; hasError = true; } else { bioError.style.display = 'none'; bioInput.style.borderColor = ''; } const saveBtn = document.querySelector('button[onclick="location.href=\'home.html\'"]'); if(saveBtn) { if(hasError) { saveBtn.style.opacity = '0.5'; saveBtn.style.pointerEvents = 'none'; } else { saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; } } } function validateEmailModal() { const e1 = document.getElementById('new-email').value; const e2 = document.getElementById('confirm-email').value; const errorArea = document.getElementById('error-email-modal'); const submitBtn = document.getElementById('btn-submit-email'); let errorMsg = ''; if (e1.length > 0 && !e1.includes('@')) { errorMsg = '有効なメールアドレス（@を含む）を入力してください。'; } else if (e2.length > 0 && !e2.includes('@')) { errorMsg = '確認用のメールアドレスも「@」を含む有効な形式で入力してください。'; } else if (e1.length > 0 && e2.length > 0 && e1 !== e2) { errorMsg = '確認用メールアドレスが一致しません。'; } if (errorMsg) { errorArea.innerText = errorMsg; errorArea.style.display = 'block'; submitBtn.style.opacity = '0.5'; submitBtn.style.pointerEvents = 'none'; } else { errorArea.style.display = 'none'; if (!e1 || !e2) { // Make it look disabled if empty but no error submitBtn.style.opacity = '0.5'; submitBtn.style.pointerEvents = 'none'; } else { submitBtn.style.opacity = '1'; submitBtn.style.pointerEvents = 'auto'; } } } function openEmailChangeModal() { document.getElementById('email-modal').style.display = 'flex'; document.getElementById('email-step-1').style.display = 'block'; document.getElementById('email-step-2').style.display = 'none'; document.getElementById('new-email').value = ''; document.getElementById('confirm-email').value = ''; document.getElementById('error-email-modal').style.display = 'none'; validateEmailModal(); } function closeEmailChangeModal() { document.getElementById('email-modal').style.display = 'none'; } function submitEmailChange() { const e1 = document.getElementById('new-email').value; const e2 = document.getElementById('confirm-email').value; if(!e1 || !e2) { return; // Disabled anyway } if(!e1.includes('@') || !e2.includes('@') || e1 !== e2) { return; // Validated natively } document.getElementById('email-step-1').style.display = 'none'; document.getElementById('email-step-2').style.display = 'block'; }
+Googleでログイン
+Instagram でログイン
+Instagramに行く
+let bgFilter = { bright: 100, contrast: 100, saturate: 100 }; let activePreset = 'none'; let activeLayer = null; function switchTool(tool, tab) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); document.querySelectorAll('.option-panel').forEach(p => p.classList.remove('active')); document.getElementById(`pnl-${tool}`).classList.add('active'); const cropOverlay = document.getElementById('cropOverlay'); cropOverlay.style.display = (tool === 'crop') ? 'block' : 'none'; if (tool !== 'text') deselectAllLayers(); } /* --- Draggable Crop Box Logic --- */ const cropBox = document.getElementById('cropBox'); let isDraggingCrop = false; let cStartX, cStartY, cStartL, cStartT; const moveBox = (e) => { if (!isDraggingCrop) return; const x = e.clientX || e.touches[0].clientX; const y = e.clientY || e.touches[0].clientY; cropBox.style.left = (cStartL + (x - cStartX)) + 'px'; cropBox.style.top = (cStartT + (y - cStartY)) + 'px'; if(e.cancelable) e.preventDefault(); }; const stopBox = () => { isDraggingCrop = false; }; cropBox.addEventListener('mousedown', e => { isDraggingCrop = true; cStartX = e.clientX; cStartY = e.clientY; cStartL = cropBox.offsetLeft; cStartT = cropBox.offsetTop; e.stopPropagation(); }); cropBox.addEventListener('touchstart', e => { isDraggingCrop = true; cStartX = e.touches[0].clientX; cStartY = e.touches[0].clientY; cStartL = cropBox.offsetLeft; cStartT = cropBox.offsetTop; e.stopPropagation(); }, {passive:false}); window.addEventListener('mousemove', moveBox); window.addEventListener('touchmove', moveBox, {passive:false}); window.addEventListener('mouseup', stopBox); window.addEventListener('touchend', stopBox); function setCropRatio(w, h) { if (w === 0) { cropBox.style.width = '240px'; cropBox.style.height = '180px'; } else { const base = 220; cropBox.style.width = base + 'px'; cropBox.style.height = (base * (h/w)) + 'px'; } cropBox.style.left = '50%'; cropBox.style.top = '50%'; cropBox.style.transform = 'translate(-50%, -50%)'; } /* --- Filter & Adjust Logic --- */ function applyFilters() { bgFilter.bright = document.getElementById('bright').value; bgFilter.contrast = document.getElementById('contrast').value; bgFilter.saturate = document.getElementById('saturate').value; updatePreviewStyles(); } function setFilter(f, el) { document.querySelectorAll('.f-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); activePreset = f === 'none' ? '' : f; updatePreviewStyles(); } function updatePreviewStyles() { const img = document.getElementById('imgPreview'); const adj = `brightness(${bgFilter.bright}%) contrast(${bgFilter.contrast}%) saturate(${bgFilter.saturate}%)`; img.style.filter = `${adj} ${activePreset}`; } function resetAdjust() { document.getElementById('bright').value = 100; document.getElementById('contrast').value = 100; document.getElementById('saturate').value = 100; applyFilters(); showToast("調整をリセットしました"); } /* --- Text Layer Logic --- */ function addTextLayer() { const val = document.getElementById('newText').value || "TEXT"; const layer = document.createElement('div'); layer.className = 'text-layer'; layer.style.cssText = "top:50%; left:50%; font-size:40px; font-weight:900; color:#FFFFFF; font-family:'Noto Sans JP', sans-serif;"; layer.innerHTML = `
+let bgFilter = { bright: 100, saturate: 100 }; let activePreset = ''; let activeLayer = null; function switchTool(tool, tab) { document.querySelectorAll('.tool-tabs .tab').forEach(t => t.classList.remove('active')); tab.classList.add('active'); document.querySelectorAll('.option-panel').forEach(p => p.classList.remove('active')); document.getElementById(`pnl-${tool}`).classList.add('active'); if (tool !== 'text') deselectAllLayers(); } /* --- Filter Logic --- */ function applyFilters() { bgFilter.bright = document.getElementById('bright').value; bgFilter.saturate = document.getElementById('saturate').value; updatePreviewStyles(); } function setFilter(f, el) { document.querySelectorAll('.f-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); activePreset = f === 'none' ? '' : f; updatePreviewStyles(); } function updatePreviewStyles() { const img = document.getElementById('videoPreview'); img.style.filter = `brightness(${bgFilter.bright}%) saturate(${bgFilter.saturate}%) ${activePreset}`; } function resetAdjust() { document.getElementById('bright').value = 100; document.getElementById('saturate').value = 100; applyFilters(); showToast("調整をリセットしました"); } /* --- Speed Logic --- */ function setSpeed(val) { document.querySelectorAll('#pnl-speed .tab').forEach(t => t.classList.remove('active')); event.target.classList.add('active'); showToast(`再生速度を ${val} に適用しました`); } /* --- Text Layer Logic --- */ function addTextLayer() { const val = document.getElementById('newText').value || "TEXT"; const layer = document.createElement('div'); layer.className = 'text-layer'; layer.style.cssText = "top:50%; left:50%; font-size:32px; font-weight:900; color:#FFFFFF;"; layer.innerHTML = `
+let selectedTippingAmount = 0; // --- Animations --- function spawnLikeParticles(btn) { const rect = btn.getBoundingClientRect(); const emojis = ['🎵', '✨', '💖', '🎵', '😍']; for(let i=0; i
+Lv.6 まで残り18%
+MYアルバム - ホーム
+MYアルバム アーカイブ一覧
+MYアルバム クリエイター応援
+MYアルバム スタンダードプラン
+MYアルバム プレミアムプラン
+MYアルバム 保存
+MYアルバムに行く
+MYアルバムの運営者(DiscoverFeed)が利用する全体管理ページのプロトタイプです。
+MYアルバムリスト
+MYアルバムを快適にご利用いただくためのプランを選択してください。
+MYアルバム限定
+MYアルバム限定コンテンツ
+MYストレージ
+MYストレージ(非公開)
+MYストレージ保存
+SHOWROOMに行く
+SNSで世界中にシェアしましょう！
+SNSにシェア
+TaroCreativeさん
+TaroCreativeさんが撮影・編集した渾身のダイジェスト動画が公式に認められました！
+TikTokに行く
+URLコピー
+URLをコピーしました
+Ver.4 編集プロジェクト
+Ver.4 編集済み・0:15
+Xに行く
+YouTubeに行く
+ZIPダウンロード
+アーカイブ
+アーカイブ&編集
+アーカイブ一覧
+アーカイブ数
+アーティストへコンテンツレビュー申請
+アーティストへ申請
+あいあい
+アイドル/アーティストが公認キュレーターのリンクとQRコードを発行できる管理画面のプロトタイプです。
+あおいちゃん
+あおいちゃんの活動を、あなただけの特別なアルバムに。
+あおいちゃんの休日ショット
+あおいちゃんの推し活HUB 1000ファン
+あおいちゃんの推し活HUB 1万音量
+あおいちゃん推し活HUB MYストレージ(非公開)
+あおいちゃん生誕祭カメラ
+あおいちゃん熱烈応援アルバム
+アップグレード
+アップロード
+アップロード開始
+アップロード完了！
+アップロード履歴
+あなたのキュレーターレベル
+あなたのコンテンツが公認されました！
+あなたのプロフィール情報として表示される内容を登録してください。
+あらゆるメディアを無制限感覚で受信
+あるあるあるね
+アルバム
+アンコールが終わり、ステージを去る直前の感動的なシーン。
+おすすめ
+オリジナル
+オリジナルコンテンツ申請
+お支払い金額
+お支払い合計
+お支払い方法を選択
+カード情報
+カード番号
+カード名義人
+カラー
+キャンセル
+キュート
+キュレーター数
+クリエイターネーム (表示名)
+クリエイターへの応援ありがとうございます。
+クレジットカード (Stripe)
+クレジットカード画面を開く
+クレジットカード情報をご確認ください。どうしても解決しない場合はそのまま続行し、後ほどマイページからご登録いただけます。
+ゴシック
+このコンテンツをシェア
+この範囲で切り抜く
+コピー
+コレクション内容
+コンサート後半、最高の笑顔を見せてくれた瞬間の1枚です。
+コンテンツをシェア
+コンテンツ名 (20文字以内)
+コントラスト
+ご契約中は、この一覧からいつでも再ダウンロードが可能です。
+サブスクリプション2026年3月
+シェア
+シェアする
+します（期間中のデータ引き出しも適宜可能です）。
+スタンダード
+スタンダード (現在のプラン)
+スタンダードプラン
+ステージの一番前から撮れた奇跡のファンサ動画です。周りの歓声も入ってます！
+ステージ上の奇跡：あおいちゃんの決定的な一瞬
+すべて
+すべて選択
+スマホで簡単！VLLO動画編集
+ゼロから学ぶ本格動画編集
+ダウンロード
+ダウンロード・保存
+ダウンロードに保存しました
+ダウンロードパスワード (任意)
+ダウンロード容量の追加購入
+タップしてファイルを選択
+データ転送上限: 1TB / 年
+データ転送料とは、アルバムへのアップロードやファンによるコンテンツ視聴等で発生する通信量（上り・下りのデータ送信量）です。
+テキストを入力...
+トークコーナー中、ファンを見つめる優しい眼差しを捉えました。
+ドラッグ＆ドロップで大容量ファイルをアップロード。ご契約中は無期限で保存・URL共有できます。
+ドラッグして再生範囲を調整
+ファイルのアップロード
+ファイルをアップロードする
+ファイル名や日付で検索...
+ファンイベント2024の東京フェスで撮影した最高の瞬間です。
+ファンおよびキュレーターとしての活動内容や目的などを記入してください。記入いただいた内容はアーティストに共有されます。
+ファンミーティングでのふとした表情
+ファンミの途中で見せた、リラックスした可愛らしい笑顔。
+フィナーレ：感謝を込めて
+フィルターを適用
+フォント
+プランを決定して次へ
+ブレブレの写真集
+プレミアム
+プレミアムストレージ2026年3月
+プレミアム会員
+プロフィール
+プロフィール - MYアルバム
+プロフィールの画像
+プロ並みのクオリティを目指す方向け
+ベーシック
+ペンライトの波に包まれながら熱唱するあおいちゃんです。
+またはここにドラッグ＆ドロップ
+または登録外のメールアドレスへ送る
+メールアドレス
+メールアドレスの変更
+メール内の
+モダン (Sans)
+やっと美容院行けた✂️サッパリしたよ〜
+ライブの熱気：光の海の中で
+ライブ開演前風景
+リセット
+レッスン終わりのクタクタトーク
+ログイン & 初期登録 - MYアルバム
+ログイン / 新規登録
+ログインアカウント (認証方法)
+をクリックして、変更処理を完了してください。
+𝕏 でログイン
+🅰️ 文字入れ
+🇪🇸 Español (Spanish)
+🇯🇵 日本語 (Japanese)
+🇹🇼 繁體中文 (Traditional Chinese)
+🎁 投げ銭
+🎥 動画
+🐇 速度
+👉 ここをクリックして確認
+👑 神認定
+💛 きいろちゃん注意ボックス
+💡 データ転送量についての大切なお知らせ
+📝 テキスト
+📥 MYアルバムに保存する
+📱 ショート動画
+📸 アイコン画像の推奨設定
+📸 画像
+📸 公認写真
+🖼️ 画像
+🛠 調整
+宛先メールアドレスを入力
+以下のURLをコピーして共有してください
+一時的な大容量ライブ映像の受信に最適
+一番人気
+映画級のカラーグレーディングを実践
+円
+応援する
+応援する金額を選択
+夏祭りの屋台を巡った、プライベート感満載のメイキング映像です。浴衣姿がとっても素敵でした！
+夏服生写真メイキング映像
+夏服生写真メイキング映像 - MYアルバム
+夏服生写真撮影の裏側に密着した特別映像と未公開オフショットのまとめです。
+過去3か月間の課金・収入の実績
+過去の東京ライブ配信から、神がかっているファンサ対応の瞬間だけを繋ぎ合わせた究極のまとめ集です。
+画像
+画像・動画トータル
+画像をアップロード
+確認用の認証メールが送信されます。
+基本情報の登録
+期限切れ
+却下
+休憩中のリラックス・スマイル
+共有URL経由で受信したファイルの一覧です。
+共有アーカイブ
+共有元: aoiinochi
+共有元: TaroCreative
+共有元: 公式みどりちゃん応援隊
+共有元で削除されました
+掲載日：2026/03/21 18:30
+掲載日：2026/03/21 18:35
+掲載日：2026/03/21 18:40
+掲載日：2026/03/21 18:42
+掲載日：2026/03/21 18:44
+掲載日：2026/03/21 18:45
+決済する
+決済に失敗しました
+決済情報のご入力
+決定
+件選択中
+検索 - MYアルバム
+現在のプランからアップグレードします。
+後で決済情報を登録して進む
+公開中
+公式が神アーカイブとして認定！本人の承認済みコンテンツです。
+公式ディレクター申請
+公認コンテンツ
+公認数：12 / 🏆 公式クリエイター
+公認数：3 / 🏆 公式クリエイター
+公認数：76 / 🏆 公式クリエイター
+更新: 昨夜
+絞り込み
+合計20ファイルの動画・画像が収録されています。
+合計22ファイルの動画・画像が収録されています。
+今すぐ見に行く！
+今注目の元気系アイドル「きいろちゃん」の魅力がぎゅっと詰まった特別ボックス。あおいちゃんも公認で大絶賛！ぜひチェックしてね！
+最大 32GB まで
+彩度
+作成したコンテンツを保存して、
+削除
+山田 太郎
+残りの伝送量 (年間)
+残り約 2分
+支払い
+支払う
+氏 (例：山田)
+次へ進む
+自己紹介
+自分のアイコンとして表示される画像を選択してください。
+自分へ✉
+自分へメール
+自由
+自由入力
+写真編集 - MYアルバム
+取引履歴
+手書き風
+受取日: 2026/02/10 20:00
+受取日: 2026/03/20 09:12
+受取日: 2026/03/24 15:30
+受取日: たった今
+収入
+処理中...'; btn.style.opacity = '0.8'; btn.style.pointerEvents = 'none'; setTimeout(() => { btn.innerHTML = '定期購入を申し込む'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; const modal = document.getElementById('mockStripeModal'); modal.classList.remove('active'); setTimeout(() => { modal.style.visibility = 'hidden'; modal.style.opacity = '0'; alert('プレミアムプランへのアップグレードが完了しました！'); location.reload(); }, 400); }, 1200); }
+処理中...'; btn.style.opacity = '0.8'; btn.style.pointerEvents = 'none'; setTimeout(() => { btn.innerHTML = '定期購入を申し込む'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; if(forceFail) { handleStripeResult(false); } else { handleStripeResult(true); } }, 1200); }
+承認
+詳細・編集
+上限超過後に追加購入を行わなくても、
+審査に合格すると「✓」バッジが付与されます
+新しいメールアドレス
+新しいメールアドレス（確認用）
+新しいメールアドレスを入力してください。
+新着
+新着アップロード完了
+申請する
+申請日: 2026/03/15 09:40
+申請日: 2026/03/20 12:15
+申請日: 2026/03/24 18:30
+申請日: 2026/03/26 10:05
+申請履歴
+神アーカイブ
+神ファンサの瞬間！！
+神認定数
+進行度
+推し活SNSで映える神編集テクニック
+推し名、配信日、神シーン等で検索
+切り抜きパパラッチ101.jpg
+設定すると、ダウンロード時にこのパスワードが必要になります。
+設定を保存して次へ
+選択したプランの決済情報を登録してください。
+選択解除
+全 20 コンテンツ
+全 22 コンテンツ
+総利用枠
+送信
+他1名が編集
+待機中...
+大容量ファイルのダウンロードに必要な可能枠を追加します。お好みのプランを選択し、DMC PAYにて決済を行ってください。
+注目度
+追加
+定期購入を申し込む
+適用
+伝送量・利用状況
+登録メールアドレス
+投げ銭
+投げ銭が完了しました！
+東京ライブ 神ファンサシーンまとめ
+東京ライブ 神ファンサシーンまとめ - MYアルバム
+藤井壮太
+動画
+動画編集 - MYアルバム
+特別招待枠
+入力された新しいメールアドレス宛に変更確認のメールを送信しました。
+任意
+認証メールを送信
+認証メールを送信しました
+年間データ転送量上限: 0.5TB
+年間データ転送量上限: 1.0TB
+年間データ転送量上限: 1TB
+年間データ転送量上限: 2.0TB
+年間データ転送量上限: 2TB
+秘蔵！ファンミの裏側大公開！
+秘密のあおいちゃん.mp4
+必須
+表示言語 (Language)
+複数のフェスや長時間アーカイブを保存
+文字入れを適用
+閉じる
+別のファイルを選択する
+変更
+編集
+編集${count}
+編集1
+編集2
+編集3
+編集が完了しました！
+編集に戻る
+編集履歴はありません
+保存
+保存 12.4k
+保存済
+保存済み共有ファイル
+本日もお疲れ様でした！明日の撮影も頑張るぞー！！✨
+万が一、年間の転送量上限を超過した場合でも、オプションで追加チャージが可能です。
+未確認
+名 (例：太郎)
+名前
+明るさ
+明朝
+明朝 (Serif)
+戻る
+友達のメルアド
+友達へシェア
+容量の追加購入 - MYアルバム
+利用プランのご選択
+利用規約 と プライバシーポリシー に同意した上でログインしてください。
+利用中のプラン
+例: ライブ最高でした！
+連絡先情報

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MYアルバム - 公式グッズストア</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nav-height: 80px;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
+            --surface: #FFFFFF;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background-color: #F8F9FB; color: var(--text-main); -webkit-tap-highlight-color: transparent; }
+        .app-container { max-width: 430px; margin: 0 auto; background: #F8F9FB; min-height: 100vh; padding-bottom: calc(var(--nav-height) + 20px); position: relative; }
+        
+        .dash-header { padding: 12px 16px; position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); z-index: 50; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); }
+        .header-title { font-size: 16px; font-weight: 900; color: var(--text-main); }
+        .cart-icon { position: relative; width: 40px; height: 40px; border-radius: 50%; background: #F0F2F5; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 18px; color: var(--text-main); transition: 0.2s; }
+        .cart-icon:active { transform: scale(0.95); }
+        .cart-badge { position: absolute; top: -2px; right: -2px; background: #FF3B30; color: white; font-size: 10px; font-weight: 900; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; }
+        .cart-badge.show { opacity: 1; transform: scale(1); }
+
+        .album-select { appearance: none; background: transparent; border: none; font-size: 16px; font-weight: 900; color: var(--text-main); width: 100%; white-space: pre; line-height: 1.3; cursor: pointer; display: block; padding-right: 20px; outline:none;}
+        .album-select option { font-size: 14px; }
+
+        .banner { background: linear-gradient(135deg, #FF6B00, #FF9955); padding: 24px 16px; position: relative; overflow: hidden; margin-bottom: 20px;}
+        .banner-content { position: relative; z-index: 2; color: #FFF; }
+        .banner-title { font-size: 20px; font-weight: 900; line-height: 1.3; margin-bottom: 6px; }
+        .banner-subtitle { font-size: 12px; font-weight: 700; opacity: 0.9; }
+        .banner-bg-icon { position: absolute; right: -10px; bottom: -20px; font-size: 100px; opacity: 0.1; transform: rotate(-15deg); pointer-events: none; }
+
+        .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px; margin-bottom: 40px; }
+        .product-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.03); display: flex; flex-direction: column; }
+        .product-img { width: 100%; aspect-ratio: 1; background: #F0F2F5; position: relative; }
+        .product-img img { width: 100%; height: 100%; object-fit: cover; }
+        .product-info { padding: 12px; display: flex; flex-direction: column; flex: 1; }
+        .product-name { font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .product-price { font-size: 15px; font-weight: 900; color: var(--primary-color); margin-bottom: 12px; margin-top: auto; }
+        .add-cart-btn { background: #FFF0E6; color: var(--primary-color); border: 1px solid rgba(255,107,0,0.2); width: 100%; padding: 8px 0; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .add-cart-btn:active { background: #FFD5B8; transform: scale(0.98); }
+        .add-cart-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+        .toast { position: fixed; bottom: calc(var(--nav-height) + 20px); left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(0,0,0,0.8); color: #FFF; padding: 12px 24px; border-radius: 24px; font-size: 13px; font-weight: 800; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 1000; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); width: max-content; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+        
+        .floating-cart-btn { position: fixed; bottom: calc(var(--nav-height) + 16px); right: 16px; background: var(--primary-color); color: white; padding: 14px 24px; border-radius: 30px; font-weight: 900; font-size: 14px; box-shadow: 0 4px 16px rgba(255,107,0,0.4); display: none; align-items: center; gap: 8px; z-index: 90; text-decoration: none; animation: popUp 0.3s cubic-bezier(0.1, 0.8, 0.2, 1); }
+        .floating-cart-btn.show { display: flex; }
+        @keyframes popUp { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="dash-header" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 12px 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <a href="home.html" style="text-decoration: none; color: var(--text-main); display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #F0F2F5;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15 18l-6-6 6-6"/></svg>
+                </a>
+                <div class="header-title">公式グッズストア</div>
+                <a href="store_checkout.html" class="cart-icon">
+                    🛒
+                    <div class="cart-badge" id="cartBadge">0</div>
+                </a>
+            </div>
+            
+            <!-- Bottom Row: Album Select -->
+            <div style="width: 100%; position: relative; display: flex; align-items: center; background: rgba(0,0,0,0.03); border-radius: 12px; padding: 4px 12px; z-index: 1;">
+                <select class="album-select" id="headerAlbumSelect" onchange="handleAlbumChange(this.value)">
+                    <option value="✓公式 あおいちゃん推し活HUB">✓公式 あおいちゃん推し活HUB</option>
+                    <option value="✓公式 みどりちゃん応援隊">✓公式 みどりちゃん応援隊</option>
+                </select>
+                <div style="position: absolute; right: 12px; pointer-events: none;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="var(--text-main)"><path d="M7 10l5 5 5-5z"/></svg>
+                </div>
+            </div>
+        </header>
+
+        <!-- Banner -->
+        <div class="banner">
+            <div class="banner-content">
+                <div class="banner-subtitle">Official Merchandise</div>
+                <div class="banner-title">あおいちゃん<br>推し活グッズ</div>
+            </div>
+            <div class="banner-bg-icon">🎁</div>
+        </div>
+
+        <div style="padding: 0 16px 16px;">
+            <div style="font-size: 15px; font-weight: 900; color: var(--text-main);">商品一覧</div>
+        </div>
+
+        <!-- Products -->
+        <div class="products-grid" id="productsGrid">
+            <!-- Dynamic Injection via JS -->
+        </div>
+
+    </div>
+
+    <!-- Floating CART Button -->
+    <a href="store_checkout.html" class="floating-cart-btn" id="floatingCartBtn">
+        カートへ進む (<span id="floatingCartCount">0</span>)
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+    </a>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">✅ カートに追加しました</div>
+
+    <!-- Scripts -->
+    <script src="nav.js"></script>
+    <script>
+        let cart = JSON.parse(localStorage.getItem('myStoreCart')) || [];
+        
+        function updateCartUI() {
+            const count = cart.reduce((acc, item) => acc + item.quantity, 0);
+            const badge = document.getElementById('cartBadge');
+            const floatingBtn = document.getElementById('floatingCartBtn');
+            const floatingCount = document.getElementById('floatingCartCount');
+            
+            if (count > 0) {
+                badge.innerText = count;
+                badge.classList.add('show');
+                floatingCount.innerText = count;
+                floatingBtn.classList.add('show');
+            } else {
+                badge.classList.remove('show');
+                floatingBtn.classList.remove('show');
+            }
+        }
+
+        function addToCart(product) {
+            const existing = cart.find(i => i.id === product.id);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            localStorage.setItem('myStoreCart', JSON.stringify(cart));
+            updateCartUI();
+            
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => {
+                t.classList.remove('show');
+            }, 2000);
+        }
+
+        const aoiData = {
+            bannerTheme: 'linear-gradient(135deg, #FF6B00, #FF9955)',
+            title: 'あおいちゃん<br>推し活グッズ',
+            primaryColor: '#FF6B00',
+            btnBg: '#FFF0E6',
+            btnBorder: 'rgba(255,107,0,0.2)',
+            products: [
+                { id: 1, name: 'あおいちゃんオリジナル フルカラーTシャツ', price: 4500, img: 'images/store/tshirt.png' },
+                { id: 2, name: 'あおいちゃんアクリルスタンド（ステージ衣装）', price: 1800, img: 'images/store/acrylic.png' },
+                { id: 3, name: 'あおいちゃん推し活 トートバッグ', price: 3200, img: 'images/store/totebag.png' },
+                { id: 4, name: 'あおいちゃんオリジナル マグカップ', price: 2500, img: 'images/store/mug.png' }
+            ]
+        };
+
+        const midoriData = {
+            bannerTheme: 'linear-gradient(135deg, #00C853, #69F0AE)',
+            title: 'みどりちゃん<br>応援グッズ',
+            primaryColor: '#00C853',
+            btnBg: '#E8F5E9',
+            btnBorder: 'rgba(0,200,83,0.2)',
+            products: [
+                { id: 5, name: 'みどりちゃんオリジナル フルカラーTシャツ', price: 4500, img: 'images/store/midori_tshirt.png' },
+                { id: 6, name: 'みどりちゃんアクリルスタンド（ステージ衣装）', price: 1800, img: 'images/store/midori_acrylic.png' },
+                { id: 7, name: 'みどりちゃん応援 トートバッグ', price: 3200, img: 'images/store/midori_totebag.png' },
+                { id: 8, name: 'みどりちゃんオリジナル マグカップ', price: 2500, img: 'images/store/midori_mug.png' }
+            ]
+        };
+
+        function handleAlbumChange(val) {
+            localStorage.setItem('selectedCurrentAlbum', val);
+            renderStore();
+        }
+
+        function renderStore() {
+            const val = document.getElementById('headerAlbumSelect').value;
+            const data = val.includes('みどりちゃん') ? midoriData : aoiData;
+            
+            // Update Banner & Global Color Var
+            document.querySelector('.banner').style.background = data.bannerTheme;
+            document.querySelector('.banner-title').innerHTML = data.title;
+            document.documentElement.style.setProperty('--primary-color', data.primaryColor);
+
+            // Fetch any existing custom albums from localstorage just in case it dynamically grew
+            const select = document.getElementById('headerAlbumSelect');
+            if (select.options.length <= 2) {
+                const custom = JSON.parse(localStorage.getItem('myCustomAlbums') || '[]');
+                custom.forEach(al => {
+                    if (al.name === 'テストアルバム') return;
+                    if (![...select.options].some(o => o.value === al.name)) {
+                        const opt = document.createElement('option');
+                        opt.value = al.name;
+                        opt.innerText = al.name;
+                        select.appendChild(opt);
+                    }
+                });
+            }
+
+            // Products list
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+            data.products.forEach(p => {
+                const html = `
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="${p.img}" alt="${p.name}">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-name">${p.name}</div>
+                            <div class="product-price" style="color: ${data.primaryColor};">¥${p.price.toLocaleString()}</div>
+                            <button class="add-cart-btn" style="background:${data.btnBg}; color:${data.primaryColor}; border-color:${data.btnBorder};" onclick="addToCart({id:${p.id}, name:'${p.name}', price:${p.price}, img:'${p.img}'})">
+                                <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                                カートに入れる
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += html;
+            });
+        }
+
+        window.onload = function() {
+            const current = localStorage.getItem('selectedCurrentAlbum');
+            if(current) {
+                const select = document.getElementById('headerAlbumSelect');
+                // Check if the current value is one of our options
+                if ([...select.options].some(o => o.value === current)) {
+                    select.value = current;
+                }
+            }
+            renderStore();
+            updateCartUI();
+        };
+    </script>
+</body>
+</html>

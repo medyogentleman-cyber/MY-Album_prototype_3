@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>容量の追加購入 - MYアルバム</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nav-height: 80px;
+        }
+        body { padding-bottom: calc(var(--nav-height) + 20px); -webkit-tap-highlight-color: transparent; }
+        .app-container { max-width: 430px; margin: 0 auto; background: var(--bg-color); min-height: 100vh;}
+
+        .h-header {
+            background: #FFF; padding: 16px; display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 90; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .h-title { font-size: 16px; font-weight: 900; color: var(--text-main); }
+        .back-btn { font-size: 24px; color: var(--text-main); text-decoration: none; font-weight: 900; width: 32px; height: 32px; display: flex; align-items: center;}
+
+        .p-area { padding: 16px; }
+
+        .plan-card {
+            background: #FFF; border: 2px solid var(--border-color); border-radius: 16px;
+            padding: 20px; margin-bottom: 16px; position: relative; transition: 0.2s;
+            cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+        }
+        .plan-card.active {
+            border-color: var(--primary-color); background: rgba(255,107,0,0.02);
+            box-shadow: 0 4px 16px rgba(255,107,0,0.1);
+        }
+        
+        .radio-circle {
+            width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            background: #FFF;
+        }
+        .plan-card.active .radio-circle {
+            border-color: var(--primary-color);
+        }
+        .plan-card.active .radio-circle::after {
+            content: ''; width: 12px; height: 12px; background: var(--primary-color); border-radius: 50%;
+        }
+
+        .plan-info { flex: 1; margin-left: 16px; }
+        .plan-name { font-size: 20px; font-weight: 900; color: var(--text-main); margin-bottom: 4px; display: flex; align-items: baseline; gap: 8px;}
+        .plan-name span { font-size: 12px; color: var(--text-sub); font-weight: 700; }
+        .plan-price { font-size: 18px; font-weight: 900; color: var(--text-main); }
+        .plan-dmcc { font-size: 12px; color: var(--primary-color); font-weight: 800; margin-top: 4px;}
+
+        .badge-popular {
+            position: absolute; top: -12px; right: 20px; background: var(--primary-color);
+            color: #FFF; font-size: 10px; font-weight: 900; padding: 4px 12px; border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(255,107,0,0.3);
+        }
+
+        .checkout-box {
+            position: fixed; bottom: var(--nav-height); left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 430px; background: #FFF; border-top: 1px solid var(--border-color);
+            padding: 16px 20px; box-shadow: 0 -4px 16px rgba(0,0,0,0.05); z-index: 95;
+            display: flex; justify-content: space-between; align-items: center;
+            bottom: env(safe-area-inset-bottom, 0px);
+            margin-bottom: var(--nav-height);
+        }
+        
+        .c-total { display:flex; flex-direction: column; }
+        .c-total-label { font-size: 12px; font-weight: 700; color: var(--text-sub); }
+        .c-total-price { font-size: 24px; font-weight: 900; color: var(--text-main); line-height: 1.2;}
+
+        /* Unified Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); height: var(--nav-height); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0px); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); text-decoration: none; font-size: 10px; font-weight: 700; gap: 4px; transition: 0.2s;}
+        .nav-item.active { color: var(--primary-color); }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
+        .nav-fab { background-color: var(--primary-color); color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -30px; box-shadow: 0 4px 12px rgba(255,107,0,0.3); font-size: 32px; line-height: 1; text-decoration: none; border: 4px solid var(--bg-color); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        
+        <header class="h-header">
+            <a href="payment.html" class="back-btn">‹</a>
+            <div class="h-title">ダウンロード容量の追加購入</div>
+            <div style="width: 32px;"></div>
+        </header>
+
+        <div class="p-area">
+            <p style="font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 24px; line-height: 1.5;">
+                大容量ファイルのダウンロードに必要な可能枠を追加します。お好みのプランを選択し、DMC PAYにて決済を行ってください。
+            </p>
+
+            <div class="plan-card" onclick="selectPlan(10000, this)">
+                <div class="radio-circle"></div>
+                <div class="plan-info">
+                    <div class="plan-name">+ 1TB <span>(1,000GB)</span></div>
+                    <div class="plan-dmcc">一時的な大容量ライブ映像の受信に最適</div>
+                </div>
+                <div class="plan-price">10,000<span style="font-size:12px;">円</span></div>
+            </div>
+
+            <div class="plan-card active" onclick="selectPlan(20000, this)">
+                <div class="badge-popular">一番人気</div>
+                <div class="radio-circle"></div>
+                <div class="plan-info">
+                    <div class="plan-name">+ 3TB <span>(3,000GB)</span></div>
+                    <div class="plan-dmcc">複数のフェスや長時間アーカイブを保存</div>
+                </div>
+                <div class="plan-price">20,000<span style="font-size:12px;">円</span></div>
+            </div>
+
+            <div class="plan-card" onclick="selectPlan(30000, this)">
+                <div class="radio-circle"></div>
+                <div class="plan-info">
+                    <div class="plan-name">+ 5TB <span>(5,000GB)</span></div>
+                    <div class="plan-dmcc">あらゆるメディアを無制限感覚で受信</div>
+                </div>
+                <div class="plan-price">30,000<span style="font-size:12px;">円</span></div>
+            </div>
+
+            <div style="height: 120px;"></div>
+        </div>
+
+        <!-- Checkout Bottom Sheet -->
+        <div class="checkout-box">
+            <div class="c-total">
+                <div class="c-total-label">お支払い合計</div>
+                <div class="c-total-price" id="totalPrice">20,000<span style="font-size:14px;">円</span></div>
+            </div>
+            <button class="btn btn-primary" style="width: 180px; padding: 12px; font-weight: 900; border-radius: 30px;" onclick="checkout()">DMC PAY で購入</button>
+        </div>
+
+        
+    </div>
+    
+    <script>
+        function selectPlan(price, el) {
+            document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('totalPrice').innerHTML = price.toLocaleString() + '<span style="font-size:14px;">円</span>';
+        }
+
+        function checkout() {
+            alert("DMC PAY の決済確認画面へ移動します（プロトタイプ）");
+            setTimeout(() => {
+                location.href = "payment.html";
+            }, 500);
+        }
+    </script>
+<script src="nav.js"></script>
+<script src="i18n.js"></script>
+</body>
+</html>

@@ -1,0 +1,415 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>動画編集 - MYアルバム</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nav-height: 80px;
+        }
+
+        body { overflow: hidden; background: #000; color: #FFF; -webkit-tap-highlight-color: transparent; width: 100vw; }
+        .app-container { max-width: 430px; margin: 0 auto; height: 100vh; position: relative; display: flex; flex-direction: column; background: var(--bg-color); color: var(--text-main); overflow: hidden; }
+
+        /* Header */
+        .e-header { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 10; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+        .back-btn { font-size: 24px; color: var(--text-main); text-decoration: none; width: 32px; }
+        .h-info { flex: 1; text-align: center; }
+        .h-title { font-size: 14px; font-weight: 900; line-height: 1.2; }
+        .h-subtitle { font-size: 10px; font-weight: 800; color: var(--primary-color); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Preview Area */
+        .preview-area { flex: 1; position: relative; background: #EAE8F2; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .preview-video { width: 100%; height: 100%; object-fit: contain; transform-origin: center; transition: filter 0.2s; }
+        
+        .play-btn { position: absolute; width: 56px; height: 56px; background: rgba(255,107,0,0.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 28px; cursor: pointer; backdrop-filter: blur(4px); z-index: 10; border: 2px solid rgba(255,255,255,0.3); }
+        
+        /* Layer System for Text */
+        .text-layer { position: absolute; padding: 10px; cursor: move; border: 2px dashed transparent; user-select: none; white-space: nowrap; transition: 0.1s border; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); z-index: 20; color: #FFF; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        .text-layer.active { border-color: var(--primary-color); background: rgba(255,107,0,0.1); border-radius: 8px; }
+        .text-layer .delete-node { position: absolute; top: -12px; right: -12px; width: 24px; height: 24px; background: #FF3B30; color: #FFF; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; transform: scale(0.8); }
+        .text-layer.active .delete-node { display: flex; }
+        .layer-content { font-size: inherit; font-weight: inherit; color: inherit; line-height: 1; }
+
+        /* Controls Area */
+        .controls-area { background: #FFF; border-top: 1px solid var(--border-color); padding: 16px 16px calc(var(--nav-height) + 16px); display: flex; flex-direction: column; gap: 16px; z-index: 40; border-radius: 24px 24px 0 0; margin-top: -16px; position:relative; box-shadow: 0 -4px 24px rgba(0,0,0,0.05); overflow: hidden; flex-shrink: 0; }
+
+        /* Timeline */
+        .timeline { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; }
+        .time-text { font-size: 11px; font-weight: 800; color: var(--text-sub); width: 40px; }
+        .track-wrap { flex: 1; height: 32px; background: var(--bg-color); border-radius: 8px; position: relative; border: 1px solid var(--border-color); overflow: hidden; }
+        
+        .track-frames { display: flex; height: 100%; width: 100%; opacity: 0.5; }
+        .track-frames div { flex: 1; border-right: 1px solid rgba(0,0,0,0.1); background-image: url('images/summer.png'); background-size: cover; background-position: center;}
+        
+        .trim-handle { position: absolute; top: 0; bottom: 0; width: 16px; background: var(--primary-color); border-radius: 4px; cursor: ew-resize; display: flex; align-items: center; justify-content: center; z-index: 5; }
+        .trim-handle::before { content: ''; width: 2px; height: 12px; background: #FFF; border-radius: 2px; }
+        .trim-left { left: 0%; }
+        .trim-right { right: 0%; }
+        .trim-active { position: absolute; top: 0; bottom: 0; left: 0%; right: 0%; border-top: 3px solid var(--primary-color); border-bottom: 3px solid var(--primary-color); background: rgba(255,107,0,0.1); z-index: 2; }
+        
+        .playhead { position: absolute; top: -4px; bottom: -4px; left: 30%; width: 2px; background: var(--accent-pink); z-index: 10; pointer-events: none; }
+        .playhead::after { content: ''; position: absolute; top: 0; left: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-pink); }
+
+        /* Tool Panels */
+        .tool-tabs { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
+        .tool-tabs::-webkit-scrollbar { display: none; }
+        .tab { font-size: 12px; font-weight: 800; color: var(--text-sub); padding: 8px 14px; border-radius: 12px; cursor: pointer; white-space: nowrap; transition: 0.2s; background: var(--bg-color); border: 1px solid transparent; }
+        .tab.active { background: #FFF; color: var(--primary-color); border-color: var(--primary-light); box-shadow: 0 4px 12px rgba(255,107,0,0.1); }
+
+        .option-panel { display: none; animation: slideUp 0.3s ease; }
+        .option-panel.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .slider-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+        .s-label { font-size: 12px; font-weight: 800; color: var(--text-main); width: 60px; }
+        input[type=range] { flex: 1; accent-color: var(--primary-color); height: 4px; border-radius: 2px; outline: none; }
+
+        /* Filter Grid */
+        .filter-grid { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+        .f-item { width: 64px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; flex-shrink: 0; }
+        .f-thumb { width: 64px; height: 64px; border-radius: 12px; background: #EAE8F2; overflow: hidden; border: 2px solid transparent; transition: 0.2s; }
+        .f-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .f-item.active .f-thumb { border-color: var(--primary-color); filter: drop-shadow(0 4px 8px rgba(255,107,0,0.3)); }
+        .f-name { font-size: 10px; font-weight: 800; color: var(--text-sub); }
+
+        /* Commit Bar */
+        .commit-bar { display: flex; gap: 10px; margin-top: 16px; }
+        .btn-commit-sub { flex: 1; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 800; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-commit-apply { background: var(--primary-color); color: #FFF; }
+        .btn-commit-cancel { background: #F5F5F7; color: var(--text-sub); }
+
+        /* Share Button */
+        .share-btn-wrap { position: fixed; bottom: calc(var(--nav-height) + 16px); left: 50%; transform: translateX(-50%); z-index: 150; }
+        .btn-share-main { background: linear-gradient(135deg, #FF6B00, #FF3B30); color: #FFF; border: none; padding: 14px 40px; border-radius: 30px; font-size: 15px; font-weight: 900; box-shadow: 0 8px 24px rgba(255,59,48,0.4); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; border: 2px solid rgba(255,255,255,0.2); }
+        .btn-share-main:active { transform: scale(0.95); }
+
+        /* Unified Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); height: var(--nav-height); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0px); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); text-decoration: none; font-size: 10px; font-weight: 700; gap: 4px; }
+        .nav-item.active { color: var(--primary-color); }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
+
+        /* Modals */
+        .modal { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%); width: 100%; max-width: 430px; background: #FFF; border-radius: 24px 24px 0 0; padding: 24px 16px calc(var(--nav-height) + 16px); z-index: 200; transition: 0.3s cubic-bezier(0.1, 0.8, 0.2, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
+        .modal.show { transform: translateX(-50%) translateY(0); }
+        .m-close-bar { width: 40px; height: 4px; background: var(--border-color); border-radius: 2px; margin: 0 auto 20px; cursor: pointer; }
+        
+        .sns-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px; }
+        .sns-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .sns-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; }
+
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 150; display: none; opacity: 0; transition: 0.3s;}
+        .overlay.show { display: block; opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        
+        <header class="e-header">
+            <a href="javascript:history.back()" class="back-btn">✕</a>
+            <div class="h-info">
+                <div class="h-subtitle">あおいちゃんの休日ショット</div>
+                <div class="h-title">Ver.4 編集プロジェクト</div>
+            </div>
+            <div style="width: 32px;"></div>
+        </header>
+
+        <div class="preview-area" id="pArea" onclick="deselectAllLayers()">
+            <img src="images/summer.png" class="preview-video" id="videoPreview">
+            <div class="play-btn">▶</div>
+        </div>
+
+        <!-- Share Button -->
+        <div class="share-btn-wrap">
+            <button class="btn-share-main" onclick="finishEdit()">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M18 16c-.79 0-1.5.31-2.03.81L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+                シェアする
+            </button>
+        </div>
+
+        <div class="controls-area">
+            
+            <div class="timeline">
+                <div class="time-text">0:00</div>
+                <div class="track-wrap">
+                    <div class="track-frames">
+                        <div></div><div></div><div></div><div></div><div></div><div></div>
+                    </div>
+                    <div class="trim-active"></div>
+                    <div class="trim-handle trim-left"></div>
+                    <div class="trim-handle trim-right"></div>
+                    <div class="playhead"></div>
+                </div>
+                <div class="time-text">0:15</div>
+            </div>
+
+            <div class="tool-tabs">
+                <div class="tab active" onclick="switchTool('trim', this)">✂️ トリム</div>
+                <div class="tab" onclick="switchTool('adjust', this)">🛠 調整</div>
+                <div class="tab" onclick="switchTool('filter', this)">✨ フィルター</div>
+                <div class="tab" onclick="switchTool('text', this)">🅰️ 文字入れ</div>
+                <div class="tab" onclick="switchTool('speed', this)">🐇 速度</div>
+            </div>
+
+            <!-- Panel: Trim -->
+            <div class="option-panel active" id="pnl-trim">
+                <div style="font-size: 12px; color: var(--text-sub); text-align: center;">ドラッグして再生範囲を調整</div>
+                <div class="commit-bar">
+                    <button class="btn-commit-sub btn-commit-apply" onclick="commitChanges('トリム')">適用</button>
+                </div>
+            </div>
+
+            <!-- Panel: Adjust -->
+            <div class="option-panel" id="pnl-adjust">
+                <div class="slider-row">
+                    <span class="s-label">明るさ</span>
+                    <input type="range" id="bright" min="50" max="150" value="100" oninput="applyFilters()">
+                </div>
+                <div class="slider-row">
+                    <span class="s-label">彩度</span>
+                    <input type="range" id="saturate" min="0" max="200" value="100" oninput="applyFilters()">
+                </div>
+                <div class="commit-bar">
+                    <button class="btn-commit-sub btn-commit-cancel" onclick="resetAdjust()">リセット</button>
+                    <button class="btn-commit-sub btn-commit-apply" onclick="commitChanges('調整')">適用</button>
+                </div>
+            </div>
+
+            <!-- Panel: Filter -->
+            <div class="option-panel" id="pnl-filter">
+                <div class="filter-grid">
+                    <div class="f-item active" onclick="setFilter('none', this)"><div class="f-thumb"><img src="images/summer.png"></div><span class="f-name">None</span></div>
+                    <div class="f-item" onclick="setFilter('grayscale(100%)', this)"><div class="f-thumb"><img src="images/summer.png" style="filter:grayscale(1)"></div><span class="f-name">Mono</span></div>
+                    <div class="f-item" onclick="setFilter('sepia(100%)', this)"><div class="f-thumb"><img src="images/summer.png" style="filter:sepia(1)"></div><span class="f-name">Sepia</span></div>
+                    <div class="f-item" onclick="setFilter('brightness(1.2) saturate(1.5)', this)"><div class="f-thumb"><img src="images/summer.png" style="filter:brightness(1.2) saturate(1.5)"></div><span class="f-name">Vivid</span></div>
+                </div>
+                <div class="commit-bar">
+                    <button class="btn-commit-sub btn-commit-apply" onclick="commitChanges('フィルター')">適用</button>
+                </div>
+            </div>
+
+            <!-- Panel: Text -->
+            <div class="option-panel" id="pnl-text">
+                <div style="display:flex; gap:8px; margin-bottom:12px;">
+                    <input type="text" id="newText" placeholder="テキストを入力..." style="flex:1; padding:10px; border-radius:12px; border:1px solid #DDD; font-size:13px; outline:none;">
+                    <button class="tab active" style="background:var(--primary-color); color:#FFF;" onclick="addTextLayer()">追加</button>
+                </div>
+                <div id="textControls" style="display:none; flex-direction:column; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <select id="fontFamily" onchange="updateTextStyle()" style="flex:1; padding:8px; border-radius:8px; border:1px solid #DDD; font-size:12px;">
+                            <option value="'Noto Sans JP', sans-serif">ゴシック</option>
+                            <option value="serif">明朝</option>
+                            <option value="'Permanent Marker', cursive">手書き風</option>
+                        </select>
+                        <input type="color" id="textColor" value="#FFFFFF" oninput="updateTextStyle()" style="width:40px; height:40px; border:none; background:none;">
+                    </div>
+                </div>
+                <div class="commit-bar">
+                    <button class="btn-commit-sub btn-commit-apply" onclick="commitChanges('文字入れ')">適用</button>
+                </div>
+            </div>
+
+            <!-- Panel: Speed -->
+            <div class="option-panel" id="pnl-speed">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <div class="tab" style="flex:1; text-align:center;" onclick="setSpeed('0.5x')">0.5x</div>
+                    <div class="tab active" style="flex:1; text-align:center;" onclick="setSpeed('1.0x')">1.0x</div>
+                    <div class="tab" style="flex:1; text-align:center;" onclick="setSpeed('2.0x')">2.0x</div>
+                </div>
+                <div class="commit-bar">
+                    <button class="btn-commit-sub btn-commit-apply" onclick="commitChanges('速度')">適用</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Modals -->
+    <div class="overlay" id="sysOverlay" onclick="closeModals()"></div>
+
+    <!-- Share Modal -->
+    <div class="modal" id="shareModal">
+        <div class="m-close-bar" onclick="closeModals()"></div>
+        <div class="m-title">コンテンツをシェア</div>
+        
+        <div style="background: #F5F5F7; padding: 12px; border-radius: 12px; display: flex; gap: 12px; align-items: center; margin-bottom: 20px;">
+            <img src="images/summer.png" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">
+            <div>
+                <div style="font-size: 13px; font-weight: 800; color: var(--text-main);">あおいちゃんの休日ショット</div>
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-sub);">Ver.4 編集済み・0:15</div>
+            </div>
+        </div>
+
+        <div class="sns-grid">
+            <div class="sns-item" onclick="shareSns('X (Twitter)')">
+                <div class="sns-icon" style="background: #000;">𝕏</div>
+                <div class="t-label">X</div>
+            </div>
+            <div class="sns-item" onclick="shareSns('Instagram')">
+                <div class="sns-icon" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);">📸</div>
+                <div class="t-label">Insta</div>
+            </div>
+            <div class="sns-item" onclick="shareSns('TikTok')">
+                <div class="sns-icon" style="background: #000;">🎵</div>
+                <div class="t-label">TikTok</div>
+            </div>
+            <div class="sns-item" onclick="saveToAlbum()">
+                <div class="sns-icon" style="background: var(--primary-color);">💾</div>
+                <div class="t-label">保存</div>
+            </div>
+        </div>
+        
+        <button class="panel-commit" style="background: var(--bg-color); color: var(--text-sub); margin-top: 24px;" onclick="closeModals()">キャンセル</button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" style="position: fixed; top: 100px; left: 50%; transform: translateX(-50%) translateY(-20px); background: rgba(0,0,0,0.8); color: #FFF; padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 800; z-index: 1000; opacity: 0; transition: 0.3s; pointer-events: none;"></div>
+    
+    <style>
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .panel-commit { width: 100%; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; border: none; }
+    </style>
+
+    
+
+    <script>
+        let bgFilter = { bright: 100, saturate: 100 };
+        let activePreset = '';
+        let activeLayer = null;
+
+        function switchTool(tool, tab) {
+            document.querySelectorAll('.tool-tabs .tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelectorAll('.option-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`pnl-${tool}`).classList.add('active');
+            if (tool !== 'text') deselectAllLayers();
+        }
+
+        /* --- Filter Logic --- */
+        function applyFilters() {
+            bgFilter.bright = document.getElementById('bright').value;
+            bgFilter.saturate = document.getElementById('saturate').value;
+            updatePreviewStyles();
+        }
+        function setFilter(f, el) {
+            document.querySelectorAll('.f-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            activePreset = f === 'none' ? '' : f;
+            updatePreviewStyles();
+        }
+        function updatePreviewStyles() {
+            const img = document.getElementById('videoPreview');
+            img.style.filter = `brightness(${bgFilter.bright}%) saturate(${bgFilter.saturate}%) ${activePreset}`;
+        }
+        function resetAdjust() {
+            document.getElementById('bright').value = 100;
+            document.getElementById('saturate').value = 100;
+            applyFilters();
+            showToast("調整をリセットしました");
+        }
+
+        /* --- Speed Logic --- */
+        function setSpeed(val) {
+            document.querySelectorAll('#pnl-speed .tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            showToast(`再生速度を ${val} に適用しました`);
+        }
+
+        /* --- Text Layer Logic --- */
+        function addTextLayer() {
+            const val = document.getElementById('newText').value || "TEXT";
+            const layer = document.createElement('div');
+            layer.className = 'text-layer';
+            layer.style.cssText = "top:50%; left:50%; font-size:32px; font-weight:900; color:#FFFFFF;";
+            layer.innerHTML = `
+                <div class="layer-content">${val}</div>
+                <div class="delete-node" onclick="this.parentElement.remove(); deselectAllLayers(); event.stopPropagation();">✕</div>
+            `;
+            layer.onclick = (e) => { e.stopPropagation(); selectLayer(layer); };
+            setupDrag(layer);
+            document.getElementById('pArea').appendChild(layer);
+            selectLayer(layer);
+            document.getElementById('newText').value = "";
+        }
+        function selectLayer(layer) {
+            deselectAllLayers();
+            activeLayer = layer;
+            layer.classList.add('active');
+            document.getElementById('textControls').style.display = 'flex';
+            document.getElementById('textColor').value = rgbToHex(layer.style.color);
+        }
+        function deselectAllLayers() {
+            document.querySelectorAll('.text-layer').forEach(l => l.classList.remove('active'));
+            activeLayer = null;
+            document.getElementById('textControls').style.display = 'none';
+        }
+        function updateTextStyle() {
+            if (!activeLayer) return;
+            activeLayer.style.color = document.getElementById('textColor').value;
+            activeLayer.style.fontFamily = document.getElementById('fontFamily').value;
+        }
+
+        function setupDrag(el) {
+            let drg = false, sX, sY, iX, iY;
+            const start = (e) => {
+                drg = true;
+                const p = e.touches ? e.touches[0] : e;
+                sX = p.clientX; sY = p.clientY;
+                iX = el.offsetLeft; iY = el.offsetTop;
+                selectLayer(el);
+                e.stopPropagation();
+            };
+            const move = (e) => {
+                if (!drg) return;
+                const p = e.touches ? e.touches[0] : e;
+                el.style.left = (iX + (p.clientX - sX)) + 'px';
+                el.style.top = (iY + (p.clientY - sY)) + 'px';
+            };
+            const end = () => drg = false;
+            el.addEventListener('mousedown', start);
+            el.addEventListener('touchstart', start, {passive:false});
+            window.addEventListener('mousemove', move);
+            window.addEventListener('touchmove', move, {passive:false});
+            window.addEventListener('mouseup', end);
+            window.addEventListener('touchend', end);
+        }
+
+        function rgbToHex(rgb) {
+            if (!rgb || !rgb.startsWith('rgb')) return rgb || '#FFFFFF';
+            const m = rgb.match(/\d+/g);
+            return "#" + m.slice(0,3).map(x => parseInt(x).toString(16).padStart(2,'0')).join('').toUpperCase();
+        }
+
+        function commitChanges(name) {
+            deselectAllLayers();
+            showToast(`✓ ${name}を適用しました`);
+        }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function finishEdit() {
+            document.getElementById('shareModal').classList.add('show');
+        }
+        function shareSns(name) {
+            showToast(`${name}へ投稿しました！`);
+            setTimeout(() => location.href='my_albums.html', 1500);
+        }
+        function saveToAlbum() {
+            showToast("MYアルバムに保存しました");
+            setTimeout(() => location.href='my_albums.html', 1500);
+        }
+    </script>
+<script src="nav.js"></script>
+<script src="i18n.js"></script>
+</body>
+</html>
+

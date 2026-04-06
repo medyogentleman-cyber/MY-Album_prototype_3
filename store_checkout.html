@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MYアルバム - チェックアウト</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nav-height: 80px;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
+            --surface: #FFFFFF;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background-color: #F8F9FB; color: var(--text-main); -webkit-tap-highlight-color: transparent; }
+        .app-container { max-width: 430px; margin: 0 auto; background: #F8F9FB; min-height: 100vh; padding-bottom: calc(var(--nav-height) + 40px); position: relative; }
+        
+        .dash-header { padding: 12px 16px; position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); z-index: 50; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); }
+        .header-title { font-size: 16px; font-weight: 900; color: var(--text-main); }
+        .back-btn { width: 40px; height: 40px; border-radius: 50%; background: #F0F2F5; display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--text-main); }
+
+        .section-title { font-size: 15px; font-weight: 900; color: var(--text-main); margin: 24px 16px 12px; display: flex; align-items: center; gap: 8px; }
+        .section-title span { background: var(--primary-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+        /* Cart Items */
+        .cart-list { margin: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+        .cart-item { background: white; border-radius: 16px; padding: 12px; display: flex; gap: 12px; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.03); }
+        .cart-item-img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; background: #F0F2F5; border: 1px solid rgba(0,0,0,0.05); }
+        .cart-item-info { flex: 1; display: flex; flex-direction: column; }
+        .cart-item-name { font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; line-height: 1.3;}
+        .cart-item-price { font-size: 12px; color: var(--text-sub); font-weight: 600; }
+        .cart-item-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+        .qty-controls { display: flex; align-items: center; gap: 12px; background: #F8F9FB; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);}
+        .qty-btn { background: transparent; border: none; font-size: 16px; font-weight: 900; color: var(--text-sub); width: 24px; display:flex; align-items:center; justify-content:center; cursor: pointer; }
+        .qty-val { font-size: 13px; font-weight: 800; width: 20px; text-align: center; }
+        .item-total { font-size: 14px; font-weight: 900; color: var(--text-main); }
+        .empty-cart { text-align: center; padding: 40px 16px; color: var(--text-sub); font-size: 14px; font-weight: 600; }
+
+        /* Summary Box */
+        .summary-box { background: white; margin: 24px 16px 0; border-radius: 16px; padding: 16px; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.03); }
+        .sum-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: var(--text-sub); font-weight: 600; }
+        .sum-total { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(0,0,0,0.1); font-size: 18px; font-weight: 900; color: var(--primary-color); }
+
+        /* Form */
+        .address-form { margin: 0 16px; background: white; border-radius: 16px; padding: 16px; box-shadow: var(--shadow-sm); border: 1px solid rgba(0,0,0,0.03); }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 14px; font-family: inherit; background: #FFF; outline: none; transition: 0.2s; }
+        .form-input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(255,107,0,0.1); }
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-group { flex: 1; }
+        .save-address-wrap { display: flex; align-items: center; gap: 8px; margin-top: -4px; padding: 12px; background: #FFF0E6; border-radius: 10px; border: 1px solid rgba(255,107,0,0.2); }
+        .save-address-label { font-size: 12px; font-weight: 800; color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none; width: 100%;}
+        input[type="checkbox"] { accent-color: var(--primary-color); width: 18px; height: 18px; }
+
+        .checkout-btn { background: #635BFF; color: white; font-size: 16px; padding: 16px; font-weight: 900; text-align: center; border-radius: 14px; margin: 24px 16px; cursor: pointer; border: none; width: calc(100% - 32px); box-shadow: 0 8px 24px rgba(99,91,255,0.3); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .checkout-btn:active { transform: translateY(2px); box-shadow: 0 4px 12px rgba(99,91,255,0.2); }
+
+        /* Stripe Mock Modal */
+        .stripe-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #F6F9FC; z-index: 300; display: none; flex-direction: column; opacity: 0; transition: 0.3s; color: #32325D; }
+        .stripe-screen.show { display: flex; opacity: 1; }
+        .stripe-header { padding: 16px 20px; font-size: 16px; font-weight: 900; text-align: center; border-bottom: 1px solid #E6EBF1; background: #FFF; display:flex; justify-content:space-between; align-items:center;}
+        .stripe-body { flex: 1; padding: 24px 20px; display: flex; flex-direction: column;}
+        .stripe-amount-box { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px rgba(50,50,93,0.05); text-align: center; margin-bottom: 24px;}
+        .stripe-amount-val { font-size: 36px; font-weight: 900; margin-top: 8px;}
+        .stripe-input-mock { background: white; border: 1px solid #E6EBF1; border-radius: 8px; padding: 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 14px;}
+        
+        .complete-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); background: #FFF; width: 90%; max-width: 340px; border-radius: 28px; padding: 36px 24px; z-index: 400; display: none; flex-direction: column; align-items: center; text-align: center; opacity: 0; transition: 0.3s; box-shadow: 0 24px 48px rgba(0,0,0,0.2); }
+        .complete-popup.show { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .cp-icon { font-size: 56px; margin-bottom: 20px; animation: bounce 1s ease infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .cp-title { font-size: 20px; font-weight: 900; margin-bottom: 12px; }
+        
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="dash-header">
+            <a href="store.html" class="back-btn">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
+            </a>
+            <div class="header-title">カート・チェックアウト</div>
+            <div style="width:40px;"></div>
+        </header>
+
+        <div class="section-title"><span>1</span> ご注文内容</div>
+        
+        <div id="cartList" class="cart-list"></div>
+        <div id="emptyCart" class="empty-cart" style="display:none;">カートは空です。<br><br><button onclick="location.href='store.html'" style="padding:10px 20px; border-radius:12px; background:var(--primary-color); color:white; font-weight:bold; border:none;">ストアに戻る</button></div>
+
+        <div id="summaryBox" class="summary-box">
+            <div class="sum-row"><span>小計</span><span id="sumSubtotal">¥0</span></div>
+            <div class="sum-row"><span>送料</span><span id="sumShipping">¥500</span></div>
+            <div class="sum-total"><span>合計</span><span id="sumTotal">¥0</span></div>
+        </div>
+
+        <div id="checkoutSection">
+            <div class="section-title"><span>2</span> お届け先情報</div>
+            
+            <div class="address-form">
+                <div class="form-group">
+                    <label class="form-label">氏名</label>
+                    <input type="text" class="form-input" id="adrsName" placeholder="山田 太郎">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">郵便番号</label>
+                        <input type="text" class="form-input" id="adrsZip" placeholder="123-4567">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">都道府県</label>
+                        <select class="form-input" id="adrsPref">
+                            <option value="">選択してください</option>
+                            <option value="東京都">東京都</option>
+                            <option value="大阪府">大阪府</option>
+                            <option value="愛知県">愛知県</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">市区町村</label>
+                    <input type="text" class="form-input" id="adrsCity" placeholder="渋谷区">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">番地・建物名</label>
+                    <input type="text" class="form-input" id="adrsLine" placeholder="神南1-2-3 MYアルバムビル 1F">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">電話番号</label>
+                    <input type="tel" class="form-input" id="adrsPhone" placeholder="090-1234-5678">
+                </div>
+                
+                <div class="save-address-wrap">
+                    <label class="save-address-label">
+                        <input type="checkbox" id="saveAddressCheck" checked>
+                        この配送先を保存する
+                    </label>
+                </div>
+            </div>
+
+            <button class="checkout-btn" onclick="openStripe()">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                決済へ進む (Stripe)
+            </button>
+        </div>
+    </div>
+
+    <!-- Stripe Mock -->
+    <div class="stripe-screen" id="stripeScreen">
+        <div class="stripe-header">
+            <div style="cursor:pointer; color:#635BFF; font-size:14px;" onclick="closeStripe()">キャンセル</div>
+            <div>Stripe Checkout</div>
+            <div style="width: 50px;"></div>
+        </div>
+        <div class="stripe-body">
+            <span style="font-size: 13px; font-weight: 800; color: #525F7F; margin-bottom: 8px; display:block;">MYアルバム 公式グッズストア</span>
+            <div class="stripe-amount-box">
+                <div style="font-size: 13px; font-weight: 800; color: #8898AA; margin-bottom: 4px;">お支払い合計</div>
+                <div class="stripe-amount-val" id="stripeAmountText">¥0</div>
+            </div>
+            
+            <span style="font-size: 13px; font-weight: 800; color: #525F7F; margin-bottom: 8px; display:block;">カード情報</span>
+            <div class="stripe-input-mock">
+                <span style="letter-spacing: 2px;">•••• •••• •••• 4242</span>
+                <span style="font-size: 20px; line-height: 1;">💳</span>
+            </div>
+            <div style="display:flex; gap:16px;">
+                <div class="stripe-input-mock" style="flex:1;">MM / YY</div>
+                <div class="stripe-input-mock" style="flex:1;">CVC</div>
+            </div>
+            
+            <button class="checkout-btn" style="margin: auto 0 0 0;" onclick="processPayment()">
+                支払う
+            </button>
+        </div>
+    </div>
+
+    <div class="complete-popup" id="completePopup">
+        <div class="cp-icon">🎉</div>
+        <div class="cp-title">ご注文完了！</div>
+        <div style="font-size:14px; font-weight:600; color:#666; margin-bottom:24px; line-height:1.5;">
+            お買い上げありがとうございます。<br>商品の到着をお待ちください！
+        </div>
+        <button style="background:var(--primary-color); color:white; border:none; padding:14px 24px; border-radius:14px; font-weight:900; font-size:15px; width:100%; cursor:pointer;" onclick="finishCheckout()">
+            注文履歴を見る
+        </button>
+    </div>
+
+    <script src="nav.js"></script>
+    <script>
+        let cart = JSON.parse(localStorage.getItem('myStoreCart')) || [];
+        let totalVal = 0;
+
+        function renderCart() {
+            const list = document.getElementById('cartList');
+            const summary = document.getElementById('summaryBox');
+            const checkoutSec = document.getElementById('checkoutSection');
+            const empty = document.getElementById('emptyCart');
+            
+            list.innerHTML = '';
+            
+            if (cart.length === 0) {
+                summary.style.display = 'none';
+                checkoutSec.style.display = 'none';
+                empty.style.display = 'block';
+                return;
+            }
+
+            let subtotal = 0;
+
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+                
+                list.innerHTML += `
+                    <div class="cart-item">
+                        <img src="${item.img}" class="cart-item-img">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">¥${item.price.toLocaleString()}</div>
+                            <div class="cart-item-bottom">
+                                <div class="qty-controls">
+                                    <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
+                                    <span class="qty-val">${item.quantity}</span>
+                                    <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
+                                </div>
+                                <div class="item-total">¥${itemTotal.toLocaleString()}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('sumSubtotal').innerText = '¥' + subtotal.toLocaleString();
+            const shipping = 500;
+            totalVal = subtotal + shipping;
+            document.getElementById('sumTotal').innerText = '¥' + totalVal.toLocaleString();
+            document.getElementById('stripeAmountText').innerText = '¥' + totalVal.toLocaleString();
+        }
+
+        function updateQty(index, change) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            localStorage.setItem('myStoreCart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        function loadSavedAddress() {
+            const saved = JSON.parse(localStorage.getItem('myStoreAddress'));
+            if (saved) {
+                document.getElementById('adrsName').value = saved.name || '';
+                document.getElementById('adrsZip').value = saved.zip || '';
+                document.getElementById('adrsPref').value = saved.pref || '';
+                document.getElementById('adrsCity').value = saved.city || '';
+                document.getElementById('adrsLine').value = saved.line || '';
+                document.getElementById('adrsPhone').value = saved.phone || '';
+            }
+        }
+
+        function saveAddressIfChecked() {
+            if (document.getElementById('saveAddressCheck').checked) {
+                const address = {
+                    name: document.getElementById('adrsName').value,
+                    zip: document.getElementById('adrsZip').value,
+                    pref: document.getElementById('adrsPref').value,
+                    city: document.getElementById('adrsCity').value,
+                    line: document.getElementById('adrsLine').value,
+                    phone: document.getElementById('adrsPhone').value,
+                };
+                localStorage.setItem('myStoreAddress', JSON.stringify(address));
+            }
+        }
+
+        function openStripe() {
+            // Basic validation
+            if (!document.getElementById('adrsName').value) {
+                alert('氏名を入力してください。');
+                return;
+            }
+            document.getElementById('stripeScreen').classList.add('show');
+        }
+
+        function closeStripe() {
+            document.getElementById('stripeScreen').classList.remove('show');
+        }
+
+        function processPayment() {
+            saveAddressIfChecked();
+            
+            // Generate Order ID
+            const orderId = 'ORD-' + Math.floor(10000000 + Math.random() * 90000000);
+            
+            // Create Order
+            const newOrder = {
+                id: orderId,
+                date: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                items: cart,
+                total: totalVal,
+                status: 'payment_completed' // payment_completed, preparing, shipped
+            };
+            
+            const history = JSON.parse(localStorage.getItem('myStoreOrders')) || [];
+            history.unshift(newOrder); // Add to top
+            localStorage.setItem('myStoreOrders', JSON.stringify(history));
+            
+            // Clear cart
+            localStorage.setItem('myStoreCart', '[]');
+
+            // Show complete
+            closeStripe();
+            document.getElementById('completePopup').classList.add('show');
+            document.body.style.overflow = 'hidden';
+            
+            // Fireworks
+            spawnConfetti();
+        }
+
+        function finishCheckout() {
+            location.href = 'order_history.html';
+        }
+
+        function spawnConfetti() {
+            const emojis = ['🎉', '✨', '🎁', '🧡'];
+            for(let i=0; i<30; i++) {
+                let el = document.createElement('div');
+                el.innerText = emojis[Math.floor(Math.random()*emojis.length)];
+                el.style.position = 'fixed';
+                el.style.left = '50%';
+                el.style.top = '50%';
+                el.style.fontSize = (Math.random()*15 + 10) + 'px';
+                el.style.pointerEvents = 'none';
+                el.style.zIndex = '9999';
+                el.style.transition = 'all 1s cubic-bezier(0.1, 0.8, 0.2, 1)';
+                
+                document.body.appendChild(el);
+                
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * 200 + 50;
+                const tx = Math.cos(angle) * dist;
+                const ty = Math.sin(angle) * dist - 100;
+                
+                setTimeout(() => {
+                    el.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${Math.random()*360}deg)`;
+                    el.style.opacity = '0';
+                }, 50);
+                
+                setTimeout(() => el.remove(), 1050);
+            }
+        }
+
+        window.onload = function() {
+            renderCart();
+            loadSavedAddress();
+        };
+    </script>
+</body>
+</html>
